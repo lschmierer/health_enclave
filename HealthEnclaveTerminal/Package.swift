@@ -9,6 +9,14 @@ let package = Package(
         .package(path: "../HealthEnclaveCommon"),
     ],
     targets: [
-        .target(name: "HealthEnclaveTerminal", dependencies: ["Gtk", "HealthEnclaveCommon"]),
+        .systemLibrary(
+            name: "CQREncode",
+            pkgConfig: "libqrencode",
+            providers: [
+                .brew(["qrencode"]),
+                .apt(["libqrencode-dev"])
+            ]
+        ),
+        .target(name: "HealthEnclaveTerminal", dependencies: ["Gtk", "CQREncode", "HealthEnclaveCommon"]),
     ]
 )

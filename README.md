@@ -29,7 +29,7 @@ Target: x86_64-unknown-linux-gnu
 ```
 on Linux.
 
-## GTK Window Toolkit
+## Development Libraries
 ### Mac
 Using Homebrew
 ```

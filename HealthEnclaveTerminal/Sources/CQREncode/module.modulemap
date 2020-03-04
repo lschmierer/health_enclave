@@ -1,0 +1,5 @@
+module CQREncode [system] {
+  header "CQREncode.h"
+  link "CQREncode"
+  export *
+}
