@@ -6,16 +6,15 @@
 //
 
 import Gtk
-import CGtk
 import Cairo
 
 import CQREncode
 
 class QRCode: DrawingArea {
-    override init(_ op: UnsafeMutablePointer<GtkDrawingArea>) {
-        super.init(op)
+    init() {
+        super.init(DrawingAreaRef().drawing_area_ptr)
         
-        self.onDraw { _, cr in
+        onDraw { _, cr in
             self.drawQRCode(cr)
             return false
         }
@@ -27,7 +26,7 @@ class QRCode: DrawingArea {
         updateQRCode()
     }
     
-    public var data: String = "" {
+    var data: String? {
         didSet {
             updateQRCode()
         }

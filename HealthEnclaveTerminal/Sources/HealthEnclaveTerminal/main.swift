@@ -2,13 +2,9 @@ import Gtk
 
 import HealthEnclaveCommon
 
-let status = Application.run { app in
-    let window = ApplicationWindowRef(application: app)
-    window.title = "Health Enclave Terminal"
-    window.setDefaultSize(width: 720, height: 540)
-    let qrCode = QRCode(data: "Test")
-    window.add(widget: qrCode)
-    window.showAll()
+let status = Application.run(id: "de.lschmierer.HealthEnclaveTerminal") { app in
+    let appModel = ApplicationModel()
+    MainWindow(application: app, model: appModel).showAll()
 }
 
 guard let status = status else {
