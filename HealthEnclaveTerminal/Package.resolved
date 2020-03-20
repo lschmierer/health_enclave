@@ -2,11 +2,29 @@
   "object": {
     "pins": [
       {
+        "package": "Clibsodium",
+        "repositoryURL": "https://github.com/tiwoc/Clibsodium.git",
+        "state": {
+          "branch": null,
+          "revision": "2ac72772aae26b2da0b15c253d9bb79ba452f66a",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "package": "Sodium",
+        "repositoryURL": "https://github.com/jedisct1/swift-sodium.git",
+        "state": {
+          "branch": null,
+          "revision": "5900a54dea817befa18f3148889fe922a38afe7f",
+          "version": "0.8.0"
+        }
+      },
+      {
         "package": "Atk",
         "repositoryURL": "https://github.com/rhx/SwiftAtk.git",
         "state": {
           "branch": "master",
-          "revision": "10cd136c1f2b3e3d0a7bcfb35765dbecfb03a1cc",
+          "revision": "f4c96cc9f33564e305ca522a81b8bbf2dd73922e",
           "version": null
         }
       },
@@ -15,7 +33,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftCairo.git",
         "state": {
           "branch": "master",
-          "revision": "adcbf216e911ac115d24e8c9defe893a09c2dff7",
+          "revision": "5ebdce94259039950b5cb7649a5a6d61514107a8",
           "version": null
         }
       },
@@ -24,7 +42,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdk.git",
         "state": {
           "branch": "master",
-          "revision": "a82f116ed32f9ac20ad3d48712c3a49e1e73b022",
+          "revision": "cc424e9f09155a7712f582460302c4d710868ead",
           "version": null
         }
       },
@@ -33,7 +51,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdkPixbuf.git",
         "state": {
           "branch": "master",
-          "revision": "3404637644c14d30b69760d51e6aa6bb52ff80e7",
+          "revision": "4b8a874d1f4fff31926cfcade87d1fea1d7e11da",
           "version": null
         }
       },
@@ -42,7 +60,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGIO.git",
         "state": {
           "branch": "master",
-          "revision": "c9493ea2c182696476f4d7bd5571529c93702038",
+          "revision": "e72e32f9746b96a0a09cadcd1743a9f3bef169ff",
           "version": null
         }
       },
@@ -51,7 +69,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGLib.git",
         "state": {
           "branch": "master",
-          "revision": "f55188455f0c95d924350e0f6e581d7b21f82ce1",
+          "revision": "d369de8a110eda55d152414afd55454806d3c050",
           "version": null
         }
       },
@@ -60,7 +78,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGModule.git",
         "state": {
           "branch": "master",
-          "revision": "3d7b665c42b06d55dcec324541cbe2c7aae0da6f",
+          "revision": "713d8d7d94f848bd783cec86f7336a582eaa0e2f",
           "version": null
         }
       },
@@ -69,7 +87,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGObject.git",
         "state": {
           "branch": "master",
-          "revision": "361f2f465b4d552665b95d60624be618c3084233",
+          "revision": "5e3d8beaf469a55710fb01daa2d0b8991e0fc94c",
           "version": null
         }
       },
@@ -78,7 +96,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGtk.git",
         "state": {
           "branch": "master",
-          "revision": "91a7217f225f29eab811723547d1f1b0f6c9896a",
+          "revision": "4200c4aa0caf5148925ba9634bb122612ba98789",
           "version": null
         }
       },
@@ -87,7 +105,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftPango.git",
         "state": {
           "branch": "master",
-          "revision": "220376babb9a5769ecee6751eac6466fad6a57f9",
+          "revision": "42f514a553bf198ac01134d684f143ee84afa881",
           "version": null
         }
       },
@@ -96,7 +114,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftPangoCairo.git",
         "state": {
           "branch": "master",
-          "revision": "f76b7e24b40fd2a09e4aa4f3f863810d7e7cc643",
+          "revision": "48caa5f8c260157a4327a57997d8650ac6751f40",
           "version": null
         }
       }

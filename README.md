@@ -33,10 +33,10 @@ on Linux.
 ### Mac
 Using Homebrew
 ```
-brew install gtk+3 gobject-introspection pkg-config
+brew install gtk+3 gobject-introspection pkg-config qrencode
 ```
 
 ### Ubuntu
 ```
-sudo apt install libgtk-3-dev gir1.2-gtksource-3.0 gobject-introspection libgirepository1.0-dev libxml2-dev
+sudo apt install libgtk-3-dev gir1.2-gtksource-3.0 gobject-introspection libgirepository1.0-dev libxml2-dev libqrencode-dev
 ```

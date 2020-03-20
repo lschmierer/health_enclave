@@ -19,5 +19,6 @@ class ConnectPage: Box {
         
         setValign(align: .center)
         add(widgets: [qrCode, label])
+        showAll()
     }
 }

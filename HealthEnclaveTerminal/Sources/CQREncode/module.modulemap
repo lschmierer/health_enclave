@@ -1,5 +1,5 @@
 module CQREncode [system] {
-  header "CQREncode.h"
-  link "CQREncode"
+  header "shim.h"
+  link "qrencode"
   export *
 }
