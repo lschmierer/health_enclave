@@ -2,21 +2,21 @@
   "object": {
     "pins": [
       {
-        "package": "Clibsodium",
-        "repositoryURL": "https://github.com/tiwoc/Clibsodium.git",
+        "package": "swift-crypto",
+        "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "2ac72772aae26b2da0b15c253d9bb79ba452f66a",
-          "version": "1.0.0"
+          "revision": "d67ac68d09a95443303e9d6e37b34e7ba101d5f1",
+          "version": "1.0.1"
         }
       },
       {
-        "package": "Sodium",
-        "repositoryURL": "https://github.com/jedisct1/swift-sodium.git",
+        "package": "swift-log",
+        "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "5900a54dea817befa18f3148889fe922a38afe7f",
-          "version": "0.8.0"
+          "revision": "74d7b91ceebc85daf387ebb206003f78813f71aa",
+          "version": "1.2.0"
         }
       },
       {
@@ -24,7 +24,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftAtk.git",
         "state": {
           "branch": "master",
-          "revision": "f4c96cc9f33564e305ca522a81b8bbf2dd73922e",
+          "revision": "b1abff9811ec704737edd9caf07583e73d87a454",
           "version": null
         }
       },
@@ -33,7 +33,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftCairo.git",
         "state": {
           "branch": "master",
-          "revision": "5ebdce94259039950b5cb7649a5a6d61514107a8",
+          "revision": "ebc65993f03173a6806e8963105879be00b838db",
           "version": null
         }
       },
@@ -42,7 +42,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdk.git",
         "state": {
           "branch": "master",
-          "revision": "cc424e9f09155a7712f582460302c4d710868ead",
+          "revision": "793fa943a0b8d0e0788b0f8d45f86fbc7a85b87d",
           "version": null
         }
       },
@@ -51,7 +51,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdkPixbuf.git",
         "state": {
           "branch": "master",
-          "revision": "4b8a874d1f4fff31926cfcade87d1fea1d7e11da",
+          "revision": "41669abad7a69e6ddca154723ac7a3f34532330d",
           "version": null
         }
       },
@@ -60,7 +60,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGIO.git",
         "state": {
           "branch": "master",
-          "revision": "e72e32f9746b96a0a09cadcd1743a9f3bef169ff",
+          "revision": "31e7ba91735b7f95ae2b5178b0b707e8741279ff",
           "version": null
         }
       },
@@ -69,7 +69,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGLib.git",
         "state": {
           "branch": "master",
-          "revision": "d369de8a110eda55d152414afd55454806d3c050",
+          "revision": "a1a1fc184e351a0601beba49614ab9eb249ea46b",
           "version": null
         }
       },
@@ -78,7 +78,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGModule.git",
         "state": {
           "branch": "master",
-          "revision": "713d8d7d94f848bd783cec86f7336a582eaa0e2f",
+          "revision": "b85ef6ebad29383fb046989e4ceb5f3d397315f3",
           "version": null
         }
       },
@@ -87,7 +87,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGObject.git",
         "state": {
           "branch": "master",
-          "revision": "5e3d8beaf469a55710fb01daa2d0b8991e0fc94c",
+          "revision": "23fb409654dbb2b3e82cfa9d5fad13fbcdbe83ce",
           "version": null
         }
       },
@@ -96,7 +96,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGtk.git",
         "state": {
           "branch": "master",
-          "revision": "4200c4aa0caf5148925ba9634bb122612ba98789",
+          "revision": "6a20e3eca3b695c022d55b7a151c261d71e93dae",
           "version": null
         }
       },
@@ -105,7 +105,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftPango.git",
         "state": {
           "branch": "master",
-          "revision": "42f514a553bf198ac01134d684f143ee84afa881",
+          "revision": "f09bcebb8f8ca3dcad99def7edafa13424a30c4b",
           "version": null
         }
       },
@@ -114,7 +114,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftPangoCairo.git",
         "state": {
           "branch": "master",
-          "revision": "48caa5f8c260157a4327a57997d8650ac6751f40",
+          "revision": "14529517ac398beb0e2a772f7214d8eafafe7e9d",
           "version": null
         }
       }

@@ -11,8 +11,8 @@ import Cairo
 import CQREncode
 
 class QRCode: DrawingArea {
-    init() {
-        super.init(DrawingAreaRef().drawing_area_ptr)
+    override init() {
+        super.init()
         
         onDraw { _, cr in
             self.drawQRCode(cr)

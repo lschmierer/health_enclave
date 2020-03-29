@@ -32,7 +32,7 @@ private func ipNotificationCallback(store: SCDynamicStore, keys: CFArray, _: Uns
 }
 
 private func randomPassword() -> String {
-    return String(bytes: CryptographicPrimitives.randomBytes(length: 13), encoding: .ascii)!
+    return CryptographicPrimitives.randomBytes(count: 13).map { String(format: "%02hhx", $0) }.joined()
 }
 
 class WifiHotspotController: WifiHotspotControllerProtocol {

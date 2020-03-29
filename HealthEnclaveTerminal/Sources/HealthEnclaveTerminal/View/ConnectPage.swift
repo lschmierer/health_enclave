@@ -9,7 +9,7 @@ import Gtk
 
 class ConnectPage: Box {
     init(wifiConfiguration: String) {
-        super.init(BoxRef(orientation: .vertical, spacing: 60).box_ptr)
+        super.init(orientation: .vertical, spacing: 60)
         
         let qrCode = QRCode(data: wifiConfiguration)
         qrCode.setSizeRequest(width: 200, height: 200)

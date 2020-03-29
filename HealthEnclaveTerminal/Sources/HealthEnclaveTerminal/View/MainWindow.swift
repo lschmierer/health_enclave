@@ -10,10 +10,9 @@ import Gtk
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.MainWindow")
 
 class MainWindow: ApplicationWindow {
-    init(application: ApplicationRef,
-         model: ApplicationModel) {
+    init(application: ApplicationProtocol, model: ApplicationModel) {
         self.model = model
-        super.init(ApplicationWindowRef(application: application).application_window_ptr)
+        super.init(application: application)
         title = "Health Enclave Terminal"
         setDefaultSize(width: 720, height: 540)
         
