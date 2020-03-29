@@ -2,21 +2,21 @@
   "object": {
     "pins": [
       {
-        "package": "Clibsodium",
-        "repositoryURL": "https://github.com/tiwoc/Clibsodium.git",
+        "package": "CarBode",
+        "repositoryURL": "https://github.com/heart/CarBode-Barcode-Scanner-For-SwiftUI.git",
         "state": {
           "branch": null,
-          "revision": "2ac72772aae26b2da0b15c253d9bb79ba452f66a",
-          "version": "1.0.0"
+          "revision": "66b08588d4984d00838a62138baecece7f9e408c",
+          "version": "1.4.1"
         }
       },
       {
-        "package": "Sodium",
-        "repositoryURL": "https://github.com/jedisct1/swift-sodium.git",
+        "package": "swift-crypto",
+        "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "5900a54dea817befa18f3148889fe922a38afe7f",
-          "version": "0.8.0"
+          "revision": "d67ac68d09a95443303e9d6e37b34e7ba101d5f1",
+          "version": "1.0.1"
         }
       }
     ]

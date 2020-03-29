@@ -2,10 +2,10 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:HealthEnclaveTerminal/HealthEnclaveTerminal.xcodeproj">
+      location = "group:HealthEnclaveCommon">
    </FileRef>
    <FileRef
-      location = "group:HealthEnclaveApp/../HealthEnclaveCommon">
+      location = "group:HealthEnclaveTerminal/HealthEnclaveTerminal.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:HealthEnclaveApp/HealthEnclaveApp.xcodeproj">
