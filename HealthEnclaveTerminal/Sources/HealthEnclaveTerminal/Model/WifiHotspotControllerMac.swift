@@ -16,7 +16,6 @@ import HealthEnclaveCommon
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.WifiHotspotControllerMac")
 
 private typealias CreateContext = (ssid: String, password: String, created: CreateHotspotCallback)
-
 private let contextKey = DispatchSpecificKey<CreateContext>()
 
 private func ipNotificationCallback(store: SCDynamicStore, keys: CFArray, _: UnsafeMutableRawPointer?) {
@@ -26,7 +25,7 @@ private func ipNotificationCallback(store: SCDynamicStore, keys: CFArray, _: Uns
     
     if let ipAddress = ipAdresses?[0] {
         logger.debug("New IP address obtained: \(ipAddress)")
-        context.created(context.ssid, context.password, ipAddress)
+        context.created(context.ssid, context.password, ipAddress, true)
         SCDynamicStoreSetDispatchQueue(store, nil)
     }
 }
@@ -35,15 +34,16 @@ private func randomPassword() -> String {
     return CryptographicPrimitives.randomBytes(count: 13).map { String(format: "%02hhx", $0) }.joined()
 }
 
-class WifiHotspotController: WifiHotspotControllerProtocol {
+class WifiHotspotController: WifiHotspotControllerProtocol {    
+    private let wifiInterface  = CWWiFiClient.shared().interface()!
     
-    init() {
-        wifiInterface = CWWiFiClient.shared().interface()!
-    }
-    
-    private let wifiInterface: CWInterface
-    
-    func create(created: @escaping CreateHotspotCallback)  {
+    func create(created: @escaping CreateHotspotCallback) throws {
+        let ssid = UserDefaults.standard.string(forKey: "ssid") ?? defaultHotspotSSID
+        
+        guard let ssidData = ssid.data(using: .utf8) else {
+            throw HotsporError.invalidSSID
+        }
+        
         logger.debug("Creating Hotspot with SSID \"\(ssid)\"...")
         
         let password = randomPassword()
@@ -52,10 +52,10 @@ class WifiHotspotController: WifiHotspotControllerProtocol {
         let queue = DispatchQueue(label: "de.lschmierer.HealthEnclaveTerminal.WifiHotspotController", target: DispatchQueue.main)
         queue.setSpecific(key: contextKey, value: CreateContext(ssid: ssid, password: password, created: created))
         
-        try! self.wifiInterface.startIBSSMode(withSSID: ssid.data(using: .utf8) ?? Data(),
-                                              security: CWIBSSModeSecurity.WEP104,
-                                              channel: 11,
-                                              password: password)
+        try self.wifiInterface.startIBSSMode(withSSID:  ssidData,
+                                             security: CWIBSSModeSecurity.WEP104,
+                                             channel: 11,
+                                             password: password)
         
         logger.debug("Hotspot started")
         logger.debug("Waiting for new IP address...")

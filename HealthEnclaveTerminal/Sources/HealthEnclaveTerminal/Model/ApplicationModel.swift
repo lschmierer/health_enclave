@@ -12,29 +12,56 @@ import HealthEnclaveCommon
 
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.ApplicationModel")
 
+enum ApplicationError: Error {
+    case invalidNetwork(String)
+}
+
 class ApplicationModel {
-    typealias CreateHotspotCreatedCallback = (_ wifiConfiguration: String) -> Void
-    typealias CreateHotspotConnectedCallback = () -> Void
+    typealias ServerCreatedCallback = (_ wifiConfiguration: String) -> Void
+    typealias DeviceConnectedCallback = () -> Void
     
-    private let wifiHotspotController = WifiHotspotController()
     
-    func createHotspot(
-        created: @escaping CreateHotspotCreatedCallback,
-        connected: @escaping CreateHotspotConnectedCallback
-    ) {
-        logger.info("Creating Hotspot...")
-        wifiHotspotController.create { ssid, password, ipAddress in
-            let wifiConfiguration = WifiConfiguration(ssid: ssid, password: password, ipAddress: ipAddress)
+    init() throws {
+        wifiHotspotController = WifiHotspotController()
+    }
+    
+    private let wifiHotspotController: WifiHotspotControllerProtocol
+    
+    func setupServer(
+        created: @escaping ServerCreatedCallback,
+        connected: @escaping DeviceConnectedCallback
+    ) throws {
+        if (UserDefaults.standard.bool(forKey: "hotspot")) {
+            logger.info("Creating Hotspot...")
+            try wifiHotspotController.create { ssid, password, ipAddress, isWEP in
+                let wifiConfiguration = WifiConfiguration(ssid: ssid, password: password, ipAddress: ipAddress, isWEP: isWEP)
+                
+                logger.info("WifiHotspot created:\n\(wifiConfiguration)")
+                
+                created(String(data: try! JSONEncoder().encode(wifiConfiguration), encoding: .utf8)!)
+            }
+        } else {
+            let wifiInterface = UserDefaults.standard.string(forKey: "wifiInterface")!
+            guard let ipAdress = getIPAddress(ofInterface: wifiInterface) else {
+                throw ApplicationError.invalidNetwork("can not get ip address of interface \(wifiInterface)")
+            }
+            let ssid = UserDefaults.standard.string(forKey: "ssid")!
+            let password = UserDefaults.standard.string(forKey: "password")!
+            let isWEP = UserDefaults.standard.bool(forKey: "isWEP")
             
-            logger.info("WifiHotspot created:\n\(wifiConfiguration)")
+            let wifiConfiguration = WifiConfiguration(ssid: ssid, password: password, ipAddress: ipAdress, isWEP: isWEP)
+            
+            logger.info("External Wifi Configuration:\n\(wifiConfiguration)")
             
             created(String(data: try! JSONEncoder().encode(wifiConfiguration), encoding: .utf8)!)
         }
     }
     
-    func shutdownHotspot() {
-        logger.info("Shutting down WifiHotspot..")
-        wifiHotspotController.shutdown()
-        logger.info("WifiHotspot shut down!")
+    func shutdownServer() {
+        if(UserDefaults.standard.bool(forKey: "hotspot")) {
+            logger.info("Shutting down WifiHotspot..")
+            wifiHotspotController.shutdown()
+            logger.info("WifiHotspot shut down!")
+        }
     }
 }

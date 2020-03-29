@@ -34,22 +34,13 @@ class ApplicationModel {
     }
     
     func connect(to jsonWifiConfiguration: String) {
-        wifiConfiguration = try! JSONDecoder().decode(WifiConfiguration.self,
-                                                          from: jsonWifiConfiguration.data(using: .utf8)!)
+        wifiConfiguration = try! JSONDecoder().decode(WifiConfiguration.self, from: jsonWifiConfiguration.data(using: .utf8)!)
         
-        
-        
-        NEHotspotConfigurationManager.shared.getConfiguredSSIDs { (wifiList) in
-            wifiList.forEach { NEHotspotConfigurationManager.shared.removeConfiguration(forSSID: $0) }
-            // ... from here you can use your usual approach to autoconnect to your network
-        }
-        
-        var hotspotConfiguration =  NEHotspotConfiguration(ssid: wifiConfiguration!.ssid, passphrase: wifiConfiguration!.password, isWEP: true)
+        var hotspotConfiguration =  NEHotspotConfiguration(ssid: wifiConfiguration!.ssid, passphrase: wifiConfiguration!.password, isWEP: wifiConfiguration!.isWEP)
         hotspotConfiguration.joinOnce = false
         
         NEHotspotConfigurationManager.shared.apply(hotspotConfiguration) { error in
             if let error = error {
-                debugPrint(error)
                 debugPrint("error \(error.localizedDescription)")
             } else {
                 debugPrint("no error")

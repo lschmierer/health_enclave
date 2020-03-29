@@ -20,15 +20,20 @@ class MainWindow: ApplicationWindow {
         page = LoadingPage()
         add(page!)
         
-        model.createHotspot(created: { wc in
-            logger.debug("Showing ConnectPage...")
-            self.page = ConnectPage(wifiConfiguration: wc)
-        }, connected: {
-            self.page = nil
-        })
+        do {
+            try model.setupServer(created: { wc in
+                logger.debug("Showing ConnectPage...")
+                self.page = ConnectPage(wifiConfiguration: wc)
+            }, connected: {
+                self.page = nil
+            })
+        } catch {
+            logger.error("Can not create server")
+        }
+        
         
         connect(signal: .destroy) {
-            model.shutdownHotspot()
+            model.shutdownServer()
         }
     }
     

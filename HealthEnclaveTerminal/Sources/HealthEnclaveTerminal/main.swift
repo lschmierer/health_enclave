@@ -1,7 +1,8 @@
+import Foundation
 import Logging
 import Gtk
 
-import HealthEnclaveCommon
+//import HealthEnclaveCommon
 
 LoggingSystem.bootstrap { label in
     var logHandler = StreamLogHandler.standardOutput(label: label)
@@ -11,10 +12,25 @@ LoggingSystem.bootstrap { label in
 
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.main")
 
+logger.info("Setting up UserDefaults...")
+UserDefaults.standard.register(defaults: [
+    "hotspot": true,
+    "ssid": "",
+    "password": "",
+    "isWEP": false,
+])
+#if os(macOS)
+UserDefaults.standard.register(defaults: ["wifiInterface": "en0"])
+#else
+UserDefaults.standard.register(defaults: ["wifiInterface": "wlan0"])
+#endif
+
 logger.info("Starting HelathEnclaveTerminal...")
 
 logger.debug("Creating ApplicationModel...")
-let appModel = ApplicationModel()
+guard let appModel = try? ApplicationModel() else {
+    fatalError("Could not create ApplicationModel")
+}
 
 logger.debug("Running Gtk Application...")
 let status = Application.run(id: "de.lschmierer.HealthEnclaveTerminal") { app in
@@ -23,7 +39,7 @@ let status = Application.run(id: "de.lschmierer.HealthEnclaveTerminal") { app in
 }
 
 guard let status = status else {
-    fatalError("Could not create Application")
+    fatalError("Could not create Gtk Application")
 }
 guard status == 0 else {
     fatalError("Application exited with status \(status)")
