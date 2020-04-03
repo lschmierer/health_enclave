@@ -17,28 +17,34 @@ enum ApplicationError: Error {
 }
 
 class ApplicationModel {
-    typealias ServerCreatedCallback = (_ wifiConfiguration: String) -> Void
+    typealias ServerSetupCallback = (_ wifiConfiguration: String) -> Void
     typealias DeviceConnectedCallback = () -> Void
     
     
     init() throws {
-        wifiHotspotController = WifiHotspotController()
+        #if os(Linux)
+        wifiHotspotController = WifiHotspotControllerLinux()
+        #else
+        wifiHotspotController = nil
+        #endif
     }
     
-    private let wifiHotspotController: WifiHotspotControllerProtocol
+    private let wifiHotspotController: WifiHotspotControllerProtocol?
     
     func setupServer(
-        created: @escaping ServerCreatedCallback,
-        connected: @escaping DeviceConnectedCallback
+        afterSetup setupCallback: @escaping ServerSetupCallback,
+        onDeviceConnected deviceConnectedCallback: @escaping DeviceConnectedCallback
     ) throws {
-        if (UserDefaults.standard.bool(forKey: "hotspot")) {
+        if let wifiHotspotController = self.wifiHotspotController, UserDefaults.standard.bool(forKey: "hotspot") {
             logger.info("Creating Hotspot...")
             try wifiHotspotController.create { ssid, password, ipAddress, isWEP in
-                let wifiConfiguration = WifiConfiguration(ssid: ssid, password: password, ipAddress: ipAddress, isWEP: isWEP)
+                let wifiConfiguration = WifiConfiguration(ssid: ssid, password: password, ipAddress: ipAddress)
                 
                 logger.info("WifiHotspot created:\n\(wifiConfiguration)")
                 
-                created(String(data: try! JSONEncoder().encode(wifiConfiguration), encoding: .utf8)!)
+                self.setupSocket(onDeviceConnected: deviceConnectedCallback)
+                
+                setupCallback(String(data: try! JSONEncoder().encode(wifiConfiguration), encoding: .utf8)!)
             }
         } else {
             let wifiInterface = UserDefaults.standard.string(forKey: "wifiInterface")!
@@ -47,18 +53,24 @@ class ApplicationModel {
             }
             let ssid = UserDefaults.standard.string(forKey: "ssid")!
             let password = UserDefaults.standard.string(forKey: "password")!
-            let isWEP = UserDefaults.standard.bool(forKey: "isWEP")
             
-            let wifiConfiguration = WifiConfiguration(ssid: ssid, password: password, ipAddress: ipAdress, isWEP: isWEP)
+            let wifiConfiguration = WifiConfiguration(ssid: ssid, password: password, ipAddress: ipAdress)
+            setupSocket(onDeviceConnected: deviceConnectedCallback)
             
             logger.info("External Wifi Configuration:\n\(wifiConfiguration)")
             
-            created(String(data: try! JSONEncoder().encode(wifiConfiguration), encoding: .utf8)!)
+            setupCallback(String(data: try! JSONEncoder().encode(wifiConfiguration), encoding: .utf8)!)
         }
     }
     
+    private func setupSocket(onDeviceConnected deviceConnectedCallback: @escaping DeviceConnectedCallback) {
+        // setup socket
+        // wait for connection to socket
+        
+    }
+    
     func shutdownServer() {
-        if(UserDefaults.standard.bool(forKey: "hotspot")) {
+        if let wifiHotspotController = self.wifiHotspotController, UserDefaults.standard.bool(forKey: "hotspot") {
             logger.info("Shutting down WifiHotspot..")
             wifiHotspotController.shutdown()
             logger.info("WifiHotspot shut down!")

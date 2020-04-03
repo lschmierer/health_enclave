@@ -21,11 +21,13 @@ class MainWindow: ApplicationWindow {
         add(page!)
         
         do {
-            try model.setupServer(created: { wc in
-                logger.debug("Showing ConnectPage...")
-                self.page = ConnectPage(wifiConfiguration: wc)
-            }, connected: {
-                self.page = nil
+            try model.setupServer(
+                afterSetup: { wc in
+                    logger.debug("Showing ConnectPage...")
+                    self.page = ConnectPage(wifiConfiguration: wc)
+            },
+                onDeviceConnected: {
+                    self.page = nil
             })
         } catch {
             logger.error("Can not create server")
