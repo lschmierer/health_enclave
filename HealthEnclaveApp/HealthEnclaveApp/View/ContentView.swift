@@ -12,8 +12,10 @@ import CarBode
 //import HealthEnclaveCommon
 
 struct ContentView: View {
-    @State var model = ApplicationModel()
-    @State var connecting = false
+    @ObservedObject var model: ApplicationModel
+    @State var showAlert = false
+    @State var alertTitle: String?
+    @State var alertMessage: String?
     
     var body: some View {
         ZStack {
@@ -22,24 +24,31 @@ struct ContentView: View {
                     ActivityIndicator(isAnimating: .constant(true))
                     Text("Connected to Terminal\nTransfering data...")
                         .multilineTextAlignment(.center)
-                    Button("Disconnect", action: {
-                        
-                    })
+                    Button("Disconnect", action: model.diconnect)
                         .padding()
                         .foregroundColor(.white)
                         .background(Color.blue)
                         .cornerRadius(8)
+                    Text("Please leave the app in the\nforeground while data is\nbeing transferred.")
+                        .multilineTextAlignment(.center)
                 }
             } else {
                 CBScanner(supportBarcode: [.qr])
-                    .interval(delay: 0)
-                    .found(r: {
-                        if(!self.connecting) {
-                            self.connecting = true
-                            self.model.connect(to: $0)
+                    .interval(delay: 0.2)
+                    .found {
+                        if(self.model.isConnecting) {
+                            return
                         }
-                    })
+                        self.model.connect(to: $0) { result in
+                            if case let .failure(error) = result {
+                                self.showAlert = true
+                                self.alertTitle = "Connection error"
+                                self.alertMessage = error.localizedDescription
+                            }
+                        }
+                }
                 VStack(spacing: 40) {
+                    if(!model.isConnecting) {
                     Rectangle()
                         .stroke(Color.white, style: StrokeStyle(
                             lineWidth: 4,
@@ -51,15 +60,33 @@ struct ContentView: View {
                         .foregroundColor(Color.white)
                         .multilineTextAlignment(.center)
                         .shadow(radius: 4)
+                    } else {
+                        ActivityIndicator(isAnimating: .constant(true))
+                        Text("Connecting...")
+                            .foregroundColor(Color.white)
+                            .multilineTextAlignment(.center)
+                            .shadow(radius: 4)
+                    }
                 }
             }
         }
         .edgesIgnoringSafeArea(.all)
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text(alertTitle ?? ""), message: Text(alertMessage ?? ""))
+        }
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
+    class ApplicationModelMock: ApplicationModel {
+        override init() {
+            super.init()
+            self.isConnecting = true
+            self.isConnected = false
+        }
+    }
+    
     static var previews: some View {
-        ContentView()
+        ContentView(model: ApplicationModelMock())
     }
 }

@@ -6,15 +6,15 @@
 //  Copyright © 2020 Lukas Schmierer. All rights reserved.
 //
 
+import os
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
-
+class AppDelegate: UIResponder, UIApplicationDelegate {    
+    let model = ApplicationModel()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        requestNotificationPermissions()
         return true
     }
 
@@ -25,13 +25,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to select a configuration to create the new scene with.
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
-
-    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
-        // Called when the user discards a scene session.
-        // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
-        // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
+    
+    func requestNotificationPermissions() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.criticalAlert, .sound]) { granted, error in
+            if let error = error {
+                os_log(.info, "No notification permissions: %@", error.localizedDescription)
+            } else {
+                os_log(.info, "Notification permissions granted")
+            }
+        }
     }
-
-
 }
 

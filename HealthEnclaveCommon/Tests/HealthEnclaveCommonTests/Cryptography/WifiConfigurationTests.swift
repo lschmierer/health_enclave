@@ -3,17 +3,16 @@ import XCTest
 
 final class WifiConfigurationTests: XCTestCase {
     func testInit() {
-        let wifiConfiguration = WifiConfiguration(ssid: "ssid", password: "password", ipAddress: "ipAddress", isWEP: true)
+        let wifiConfiguration = WifiConfiguration(ssid: "ssid", password: "password", ipAddress: "ipAddress")
         
         XCTAssertEqual(wifiConfiguration.ssid, "ssid")
         XCTAssertEqual(wifiConfiguration.password, "password")
         XCTAssertEqual(wifiConfiguration.ipAddress, "ipAddress")
-        XCTAssertEqual(wifiConfiguration.isWEP, true)
     }
     
     func testCodable() {
-        let wifiConfiguration = WifiConfiguration(ssid: "ssid", password: "password", ipAddress: "ipAddredd", isWEP: true)
-        let json = "{\"password\":\"password\",\"ipAddress\":\"ipAddredd\",\"ssid\":\"ssid\",\"isWEP\":true}".data(using: .utf8)!
+        let wifiConfiguration = WifiConfiguration(ssid: "ssid", password: "password", ipAddress: "ipAddredd")
+        let json = "{\"password\":\"password\",\"ipAddress\":\"ipAddredd\",\"ssid\":\"ssid\"}".data(using: .utf8)!
         
         XCTAssertEqual(try! JSONEncoder().encode(wifiConfiguration), json)
         XCTAssertEqual(try! JSONDecoder().decode(WifiConfiguration.self, from: json), wifiConfiguration)

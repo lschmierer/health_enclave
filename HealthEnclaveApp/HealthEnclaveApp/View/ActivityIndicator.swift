@@ -14,7 +14,9 @@ public struct ActivityIndicator: UIViewRepresentable {
     @Binding var isAnimating: Bool
     
     public func makeUIView(context: Context) -> UIViewType {
-        UIActivityIndicatorView(style: .medium)
+        let activityIndicator = UIActivityIndicatorView(style: .medium)
+        activityIndicator.color = .white
+        return activityIndicator
     }
     
     public func updateUIView(_ uiView: UIViewType, context: Context) {
