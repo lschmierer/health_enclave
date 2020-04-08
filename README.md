@@ -9,6 +9,9 @@ You can pass command-line arguments to change the default behaviour.
 | -ssid <SSID>           | SSID for Clients to connect to. Default: "Health Enclave Terminal" if Hotspot is enabled |
 | -password <pw>         | Password of Wifi Network for Clients. (only if Hotspot is enabled)                       |
 | -wifiInterface <iface> | Wifi Interface to use. Default "en0" on macOS, "wlan0" on Linux                          |
+| -port <#port>          | Port to listen on. Default: 42242                                                        |
+| -cert <cert.pem>       | PEM file containing TLS certificate chain. Required.                                     |
+| -key <key.pem>         | PEM file containing TLS private key. Required.                                           |
 
 Use e.g.  `./HealthEnclaveTerminal -hotspot false -ssid SomeSSID -password SomePassword` to let clients connect to an existing Wifi network instead of creating a hotspot.
 

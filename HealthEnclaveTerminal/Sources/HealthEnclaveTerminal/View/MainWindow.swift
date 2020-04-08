@@ -30,12 +30,8 @@ class MainWindow: ApplicationWindow {
                     self.page = nil
             })
         } catch {
-            logger.error("Can not create server")
-        }
-        
-        
-        connect(signal: .destroy) {
-            model.shutdownServer()
+            logger.error("Can not create server: \(error)")
+            application.quit()
         }
     }
     

@@ -13,6 +13,7 @@
 		BD7182BF24278B34007013CE /* HealthEnclaveCommon in Frameworks */ = {isa = PBXBuildFile; productRef = BD7182BE24278B34007013CE /* HealthEnclaveCommon */; };
 		BD7182C224278DF7007013CE /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD7182C124278DF7007013CE /* NetworkExtension.framework */; };
 		BDD7538624360CA10025E098 /* NetworkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD7538524360CA10025E098 /* NetworkUtils.swift */; };
+		BDD756592437E9AF0025E098 /* HealthEnclaveClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD756582437E9AF0025E098 /* HealthEnclaveClient.swift */; };
 		BDEE72FA240D782B00C73EB8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE72F9240D782B00C73EB8 /* AppDelegate.swift */; };
 		BDEE72FC240D782B00C73EB8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE72FB240D782B00C73EB8 /* SceneDelegate.swift */; };
 		BDEE72FE240D782B00C73EB8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE72FD240D782B00C73EB8 /* ContentView.swift */; };
@@ -75,6 +76,7 @@
 		BD7182C024278DF7007013CE /* HealthEnclaveApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HealthEnclaveApp.entitlements; sourceTree = "<group>"; };
 		BD7182C124278DF7007013CE /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		BDD7538524360CA10025E098 /* NetworkUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkUtils.swift; sourceTree = "<group>"; };
+		BDD756582437E9AF0025E098 /* HealthEnclaveClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthEnclaveClient.swift; sourceTree = "<group>"; };
 		BDEE72F6240D782B00C73EB8 /* HealthEnclaveApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HealthEnclaveApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDEE72F9240D782B00C73EB8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		BDEE72FB240D782B00C73EB8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -135,6 +137,7 @@
 			children = (
 				BD6E21EB24251AED00033B0A /* ApplicationModel.swift */,
 				BDD7538524360CA10025E098 /* NetworkUtils.swift */,
+				BDD756582437E9AF0025E098 /* HealthEnclaveClient.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -397,6 +400,7 @@
 				BDEE72FA240D782B00C73EB8 /* AppDelegate.swift in Sources */,
 				BD6E21F324251F8F00033B0A /* ActivityIndicator.swift in Sources */,
 				BDEE72FC240D782B00C73EB8 /* SceneDelegate.swift in Sources */,
+				BDD756592437E9AF0025E098 /* HealthEnclaveClient.swift in Sources */,
 				BD6E21EC24251AED00033B0A /* ApplicationModel.swift in Sources */,
 				BDD7538624360CA10025E098 /* NetworkUtils.swift in Sources */,
 				BDEE72FE240D782B00C73EB8 /* ContentView.swift in Sources */,

@@ -15,6 +15,9 @@ UserDefaults.standard.register(defaults: [
     "hotspot": true,
     "ssid": "",
     "password": "",
+    "port": 42242,
+    "cert": "",
+    "key": "",
 ])
 
 #if os(macOS)

@@ -1,0 +1,21 @@
+//
+//  HealthEnclave.proto
+//
+//
+//  Created by Lukas Schmierer on 03.04.20.
+//
+syntax = "proto3";
+
+package health_enclave;
+
+// Interface exported by the server.
+service HealthEnclaveService {
+  // Sends a greeting
+  rpc SayHello(HelloRequest) returns (HelloReply) {}
+}
+
+// The request message containing the user's name.
+message HelloRequest { string name = 1; }
+
+// The response message containing the greetings
+message HelloReply { string message = 1; }

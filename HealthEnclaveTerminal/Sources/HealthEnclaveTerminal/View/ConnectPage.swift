@@ -4,11 +4,11 @@
 //
 //  Created by Lukas Schmierer on 04.03.20.
 //
-
+import Foundation
 import Gtk
 
 class ConnectPage: Box {
-    init(wifiConfiguration: String) {
+    init(wifiConfiguration: Data) {
         super.init(orientation: .vertical, spacing: 60)
         
         let qrCode = QRCode(data: wifiConfiguration)

@@ -13,6 +13,7 @@ import CarBode
 
 struct ContentView: View {
     @ObservedObject var model: ApplicationModel
+    @State var lastQrData: String?
     @State var showAlert = false
     @State var alertTitle: String?
     @State var alertMessage: String?
@@ -24,7 +25,7 @@ struct ContentView: View {
                     ActivityIndicator(isAnimating: .constant(true))
                     Text("Connected to Terminal\nTransfering data...")
                         .multilineTextAlignment(.center)
-                    Button("Disconnect", action: model.diconnect)
+                    Button("Disconnect", action: model.disconnect)
                         .padding()
                         .foregroundColor(.white)
                         .background(Color.blue)
@@ -35,15 +36,18 @@ struct ContentView: View {
             } else {
                 CBScanner(supportBarcode: [.qr])
                     .interval(delay: 0.2)
-                    .found {
-                        if(self.model.isConnecting) {
+                    .found { data in
+                        if self.model.isConnecting || data == self.lastQrData {
                             return
                         }
-                        self.model.connect(to: $0) { result in
+                        self.lastQrData = data
+                        self.model.connect(to: data) { result in
                             if case let .failure(error) = result {
                                 self.showAlert = true
                                 self.alertTitle = "Connection error"
                                 self.alertMessage = error.localizedDescription
+                            } else {
+                                self.lastQrData = nil
                             }
                         }
                 }

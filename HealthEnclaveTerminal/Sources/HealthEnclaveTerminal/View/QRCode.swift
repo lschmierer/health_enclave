@@ -4,7 +4,7 @@
 //
 //  Created by Lukas Schmierer on 03.03.20.
 //
-
+import Foundation
 import Gtk
 import Cairo
 
@@ -20,13 +20,13 @@ class QRCode: DrawingArea {
         }
     }
     
-    convenience init(data: String) {
+    convenience init(data: Data) {
         self.init()
         self.data = data
         updateQRCode()
     }
     
-    var data: String? {
+    var data: Data? {
         didSet {
             updateQRCode()
         }
@@ -39,7 +39,10 @@ class QRCode: DrawingArea {
             QRcode_free(qrData)
         }
         
-        qrData = QRcode_encodeString(data, 0, QR_ECLEVEL_M, QR_MODE_8, 1)
+        qrData = data!.withUnsafeBytes({ ptr in
+            return QRcode_encodeData(Int32(data!.count), ptr.bindMemory(to: UInt8.self).baseAddress!, 0, QR_ECLEVEL_M)
+        })
+            
         
         self.queueDraw()
     }

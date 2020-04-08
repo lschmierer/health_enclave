@@ -14,9 +14,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     var window: UIWindow?
     
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+    func appModel() -> ApplicationModel {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let contentView = ContentView(model: appDelegate.model)
+        return appDelegate.model
+    }
+    
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        let contentView = ContentView(model: appModel())
         
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
@@ -32,8 +36,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     func sceneDidEnterBackground(_ scene: UIScene) {
-        // if transmitting data
-        sendOpenForegroundNotification()
+        let model = appModel()
+        if model.isConnected && model.isTransfering {
+            sendOpenForegroundNotification()
+        }
     }
     
     func sendOpenForegroundNotification() {

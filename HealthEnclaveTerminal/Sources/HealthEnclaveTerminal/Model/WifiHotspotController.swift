@@ -17,6 +17,4 @@ typealias CreateHotspotCallback = (_ ssid: String, _ password: String, _ ipAddre
 
 protocol WifiHotspotControllerProtocol {
     func create(created: @escaping CreateHotspotCallback) throws
-    
-    func shutdown()
 }
