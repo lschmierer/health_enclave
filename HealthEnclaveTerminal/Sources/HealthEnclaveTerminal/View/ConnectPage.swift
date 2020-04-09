@@ -8,7 +8,7 @@ import Foundation
 import Gtk
 
 class ConnectPage: Box {
-    init(wifiConfiguration: Data) {
+    init(wifiConfiguration: String) {
         super.init(orientation: .vertical, spacing: 60)
         
         let qrCode = QRCode(data: wifiConfiguration)

@@ -8,7 +8,7 @@
 
 ///
 ///  HealthEnclave.proto
-///  
+///
 ///
 ///  Created by Lukas Schmierer on 03.04.20.
 
@@ -45,6 +45,26 @@ public struct HealthEnclave_HelloReply {
   // methods supported on all messages.
 
   public var message: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct HealthEnclave_WifiConfiguration {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var ssid: String = String()
+
+  public var password: String = String()
+
+  public var ipAddress: String = String()
+
+  public var port: Int32 = 0
+
+  public var derCert: Data = SwiftProtobuf.Internal.emptyData
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -108,6 +128,59 @@ extension HealthEnclave_HelloReply: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
   public static func ==(lhs: HealthEnclave_HelloReply, rhs: HealthEnclave_HelloReply) -> Bool {
     if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension HealthEnclave_WifiConfiguration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".WifiConfiguration"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "ssid"),
+    2: .same(proto: "password"),
+    3: .same(proto: "ipAddress"),
+    4: .same(proto: "port"),
+    5: .same(proto: "derCert"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularStringField(value: &self.ssid)
+      case 2: try decoder.decodeSingularStringField(value: &self.password)
+      case 3: try decoder.decodeSingularStringField(value: &self.ipAddress)
+      case 4: try decoder.decodeSingularInt32Field(value: &self.port)
+      case 5: try decoder.decodeSingularBytesField(value: &self.derCert)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.ssid.isEmpty {
+      try visitor.visitSingularStringField(value: self.ssid, fieldNumber: 1)
+    }
+    if !self.password.isEmpty {
+      try visitor.visitSingularStringField(value: self.password, fieldNumber: 2)
+    }
+    if !self.ipAddress.isEmpty {
+      try visitor.visitSingularStringField(value: self.ipAddress, fieldNumber: 3)
+    }
+    if self.port != 0 {
+      try visitor.visitSingularInt32Field(value: self.port, fieldNumber: 4)
+    }
+    if !self.derCert.isEmpty {
+      try visitor.visitSingularBytesField(value: self.derCert, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: HealthEnclave_WifiConfiguration, rhs: HealthEnclave_WifiConfiguration) -> Bool {
+    if lhs.ssid != rhs.ssid {return false}
+    if lhs.password != rhs.password {return false}
+    if lhs.ipAddress != rhs.ipAddress {return false}
+    if lhs.port != rhs.port {return false}
+    if lhs.derCert != rhs.derCert {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -1,12 +1,12 @@
 //
-//  CryptographicPrimitives.swift
+//  CryptoPrimitives.swift
 //  
 //
 //  Created by Lukas Schmierer on 17.03.20.
 //
 import Crypto
 
-public class CryptographicPrimitives {
+public class CryptoPrimitives {
 
     public static func randomBytes(count: Int) -> [UInt8] {
         // SystemRandomNumberGenerator is cryptographically secure.

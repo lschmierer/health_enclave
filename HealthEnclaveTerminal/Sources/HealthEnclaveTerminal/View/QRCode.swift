@@ -20,13 +20,13 @@ class QRCode: DrawingArea {
         }
     }
     
-    convenience init(data: Data) {
+    convenience init(data: String) {
         self.init()
         self.data = data
         updateQRCode()
     }
     
-    var data: Data? {
+    var data: String? {
         didSet {
             updateQRCode()
         }
@@ -39,12 +39,11 @@ class QRCode: DrawingArea {
             QRcode_free(qrData)
         }
         
-        qrData = data!.withUnsafeBytes({ ptr in
-            return QRcode_encodeData(Int32(data!.count), ptr.bindMemory(to: UInt8.self).baseAddress!, 0, QR_ECLEVEL_M)
-        })
+        if let data = data {
+            qrData = QRcode_encodeString8bit(data, 0, QR_ECLEVEL_M)
             
-        
-        self.queueDraw()
+            self.queueDraw()
+        }
     }
     
     func drawQRCode(_ cr: cairo.ContextProtocol) {

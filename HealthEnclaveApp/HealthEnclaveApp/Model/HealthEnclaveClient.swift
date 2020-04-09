@@ -14,6 +14,7 @@ import HealthEnclaveCommon
 
 
 class HealthEnclaveClient {
+    typealias ConnectionCallback = (_ result: Result<Void, Error>) -> Void
     typealias ConnectionErrorCallback = (_ error: Error) -> Void
     
     private let group: EventLoopGroup
@@ -34,21 +35,24 @@ class HealthEnclaveClient {
         let channel = ClientConnection(configuration: configuration)
         
         client = HealthEnclave_HealthEnclaveClient(channel: channel)
-        self.connectionErrorCallback = { error in
+        self.connectionErrorCallback = connectionErrorCallback
+    }
+    
+    func handleConnectionError<T>(_ result: Result<T,Error>) {
+        if case let .failure(error) = result {
             DispatchQueue.main.async {
-                connectionErrorCallback(error)
+                self.connectionErrorCallback(error)
             }
         }
     }
     
-    func connect() -> EventLoopFuture<Void> {
-        return client.sayHello(HealthEnclave_HelloRequest.with { $0.name = "Client" }).response.always { result in
-            if case let .failure(error) = result {
-                self.connectionErrorCallback(error)
-            }
-            print(result)
+    func establishConnection(onConnection connectionCallback: @escaping ConnectionCallback) {
+        let _ = client.sayHello(HealthEnclave_HelloRequest.with { $0.name = "Client" }).response
+            .always { self.handleConnectionError($0) }
+            .always { result in DispatchQueue.main.async { connectionCallback(result.map {_ in () }) } }
+            .always { result in
+                print(result)
         }
-        .map { _ in }
     }
     
     deinit {

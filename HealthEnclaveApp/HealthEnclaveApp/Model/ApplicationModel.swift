@@ -46,9 +46,8 @@ class ApplicationModel: ObservableObject {
     func connect(to jsonWifiConfiguration: String, onConnect connectedCallback: @escaping ConnectedCallback) {
         isConnecting = true
         guard
-            let wifiConfiguration = try? JSONDecoder().decode(WifiConfiguration.self, from: jsonWifiConfiguration.data(using: .utf8)!),
-            let derBytes = Data(base64Encoded: wifiConfiguration.derCertBase64),
-            let certificate = try? NIOSSLCertificate(bytes: [UInt8](derBytes), format: .der)
+            let wifiConfiguration = try? HealthEnclave_WifiConfiguration(jsonString: jsonWifiConfiguration),
+            let certificate = try? NIOSSLCertificate(bytes: [UInt8](wifiConfiguration.derCert), format: .der)
             else {
                 os_log(.info, "Invalid WifiConfiguration: %@", jsonWifiConfiguration)
                 connectedCallback(.failure(.wifiInvalidConfiguration))
@@ -64,7 +63,7 @@ class ApplicationModel: ObservableObject {
                 self.isConnecting = false
                 connectedCallback(result)
             } else {
-                self.createClient(ipAddress: wifiConfiguration.ipAddress, port: wifiConfiguration.port, certificate: certificate) { result in
+                self.createClient(ipAddress: wifiConfiguration.ipAddress, port: Int(wifiConfiguration.port), certificate: certificate) { result in
                     if case .failure = result {
                         self.isConnected = false
                         self.isConnecting = false
@@ -121,15 +120,9 @@ class ApplicationModel: ObservableObject {
             self.disconnect()
         }
         
-        let _ = client?.connect().always({ result in
-            DispatchQueue.main.async {
-                if case .failure = result {
-                    connectedCallback(.failure(.connection))
-                } else {
-                    connectedCallback(.success(()))
-                }
-            }
-        })
+        client!.establishConnection { result in
+            connectedCallback(result.mapError { _ in ApplicationError.connection })
+        }
     }
     
     func disconnect() {
