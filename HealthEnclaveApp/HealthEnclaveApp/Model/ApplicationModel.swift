@@ -35,7 +35,7 @@ extension ApplicationError: LocalizedError {
 }
 
 class ApplicationModel: ObservableObject {
-    typealias ConnectedCallback = (_ result: Result<Void, ApplicationError>) -> Void
+    typealias ConnectionCallback = (_ result: Result<Void, ApplicationError>) -> Void
     
     @Published public internal(set) var isConnecting = false
     @Published public internal(set) var isConnected = false
@@ -43,14 +43,14 @@ class ApplicationModel: ObservableObject {
     
     private var client: HealthEnclaveClient?
     
-    func connect(to jsonWifiConfiguration: String, onConnect connectedCallback: @escaping ConnectedCallback) {
+    func connect(to jsonWifiConfiguration: String, onConnection connectionCallback: @escaping ConnectionCallback) {
         isConnecting = true
         guard
             let wifiConfiguration = try? HealthEnclave_WifiConfiguration(jsonString: jsonWifiConfiguration),
             let certificate = try? NIOSSLCertificate(bytes: [UInt8](wifiConfiguration.derCert), format: .der)
             else {
                 os_log(.info, "Invalid WifiConfiguration: %@", jsonWifiConfiguration)
-                connectedCallback(.failure(.wifiInvalidConfiguration))
+                connectionCallback(.failure(.wifiInvalidConfiguration))
                 self.isConnecting = false
                 self.isConnected = false
                 return
@@ -61,7 +61,7 @@ class ApplicationModel: ObservableObject {
             if case .failure = result {
                 self.isConnected = false
                 self.isConnecting = false
-                connectedCallback(result)
+                connectionCallback(result)
             } else {
                 self.createClient(ipAddress: wifiConfiguration.ipAddress, port: Int(wifiConfiguration.port), certificate: certificate) { result in
                     if case .failure = result {
@@ -78,7 +78,7 @@ class ApplicationModel: ObservableObject {
         }
     }
     
-    private func connectWifi(ssid: String, passphrase: String, onConnect connectedCallback: @escaping ConnectedCallback) {
+    private func connectWifi(ssid: String, passphrase: String, onConnection connectionCallback: @escaping ConnectionCallback) {
         let hotspotConfiguration =  NEHotspotConfiguration(ssid: ssid, passphrase: passphrase, isWEP: false)
         hotspotConfiguration.joinOnce = false
         
@@ -95,16 +95,16 @@ class ApplicationModel: ObservableObject {
             
             if let error = nsError  {
                 os_log(.error, "Error applying Hotspot Configuration: %@", error.debugDescription)
-                connectedCallback(Result.failure(.wifi(error)))
+                connectionCallback(Result.failure(.wifi(error)))
             } else {
                 os_log(.info, "Hotspot Configuration added")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                     if let connectedSsid = getWifiSsid(), connectedSsid == ssid {
                         os_log(.info, "Wifi connected");
-                        connectedCallback(.success(()))
+                        connectionCallback(.success(()))
                     } else {
                         os_log(.error, "Connected to wrong SSID")
-                        connectedCallback(.failure(.wifi(nil)))
+                        connectionCallback(.failure(.wifi(nil)))
                     }
                 }
             }
