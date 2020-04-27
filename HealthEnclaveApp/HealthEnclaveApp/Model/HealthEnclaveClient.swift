@@ -45,10 +45,14 @@ class HealthEnclaveClient: ConnectivityStateDelegate {
     func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
         if let connectionCallback = connectionCallback {
             if(newState == .ready) {
-                connectionCallback(.success(()))
+                DispatchQueue.main.async {
+                    connectionCallback(.success(()))
+                }
                 self.connectionCallback = nil
             } else if(newState == .shutdown) {
-                connectionCallback(.failure(.connection))
+                DispatchQueue.main.async {
+                    connectionCallback(.failure(.connection))
+                }
                 self.connectionCallback = nil
             }
         }
