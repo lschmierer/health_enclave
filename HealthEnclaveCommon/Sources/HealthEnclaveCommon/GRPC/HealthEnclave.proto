@@ -9,16 +9,17 @@ syntax = "proto3";
 package health_enclave;
 
 // Interface exported by the server.
-service HealthEnclaveService {
-    // Sends a greeting
-    rpc SayHello(HelloRequest) returns (HelloReply) {}
+service HealthEnclave {
+    // The client sends a stream of document identifiers to the server.
+    // The server shall delete local documents not contained in the clients stream.
+    // The server shall respond with a stream of document identifiers that are locally not present.
+    rpc DocumentRequests(stream DocumentIdentifier) returns (stream DocumentIdentifier);
+    rpc DocumentRequests2(stream DocumentIdentifier) returns (stream DocumentIdentifier);
 }
 
-// The request message containing the user's name.
-message HelloRequest { string name = 1; }
-
-// The response message containing the greetings
-message HelloReply { string message = 1; }
+message DocumentIdentifier {
+    string uuid = 1;
+}
 
 message WifiConfiguration {
     string ssid = 1;

@@ -10,11 +10,21 @@ import NIO
 import HealthEnclaveCommon
 
 
-class HealthEnclaveProvider: HealthEnclave_HealthEnclaveProvider {    
-    func sayHello(request: HealthEnclave_HelloRequest, context: StatusOnlyCallContext) -> EventLoopFuture<HealthEnclave_HelloReply> {
-        
-        return context.eventLoop.makeSucceededFuture(HealthEnclave_HelloReply.with {
-            $0.message = "Hello \(request.name)"
+class HealthEnclaveProvider: HealthEnclave_HealthEnclaveProvider {
+    func documentRequests(context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void> {
+        return context.eventLoop.makeSucceededFuture({ event in
+            switch event {
+            case .message(let documentIdentifier):
+                _ = context.sendResponse(documentIdentifier)
+                
+            case .end:
+                context.statusPromise.succeed(.ok)
+            }
         })
     }
+    
+    func documentRequests2(context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void> {
+        return documentRequests(context: context);
+    }
+    
 }

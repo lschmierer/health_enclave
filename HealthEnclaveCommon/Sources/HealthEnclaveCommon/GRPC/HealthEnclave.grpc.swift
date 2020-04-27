@@ -29,14 +29,15 @@ import SwiftProtobuf
 
 /// Usage: instantiate HealthEnclave_HealthEnclaveClient, then call methods of this protocol to make API calls.
 public protocol HealthEnclave_HealthEnclaveClientProtocol {
-  func sayHello(_ request: HealthEnclave_HelloRequest, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_HelloRequest, HealthEnclave_HelloReply>
+  func documentRequests(callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> BidirectionalStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_DocumentIdentifier>
+  func documentRequests2(callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> BidirectionalStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_DocumentIdentifier>
 }
 
 public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_HealthEnclaveClientProtocol {
   public let channel: GRPCChannel
   public var defaultCallOptions: CallOptions
 
-  /// Creates a client for the healthEnclave.HealthEnclave service.
+  /// Creates a client for the health_enclave.HealthEnclave service.
   ///
   /// - Parameters:
   ///   - channel: `GRPCChannel` to the service host.
@@ -46,38 +47,64 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
     self.defaultCallOptions = defaultCallOptions
   }
 
-  /// Sends a greeting
+  /// The client sends a stream of document identifiers to the server.
+  /// The server shall delete local documents not contained in the clients stream.
+  /// The server shall respond with a stream of document identifiers that are locally not present.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
   ///
   /// - Parameters:
-  ///   - request: Request to send to SayHello.
   ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func sayHello(_ request: HealthEnclave_HelloRequest, callOptions: CallOptions? = nil) -> UnaryCall<HealthEnclave_HelloRequest, HealthEnclave_HelloReply> {
-    return self.makeUnaryCall(path: "/healthEnclave.HealthEnclave/SayHello",
-                              request: request,
-                              callOptions: callOptions ?? self.defaultCallOptions)
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
+  public func documentRequests(callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> BidirectionalStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_DocumentIdentifier> {
+    return self.makeBidirectionalStreamingCall(path: "/health_enclave.HealthEnclave/DocumentRequests",
+                                               callOptions: callOptions ?? self.defaultCallOptions,
+                                               handler: handler)
+  }
+
+  /// Bidirectional streaming call to DocumentRequests2
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
+  public func documentRequests2(callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> BidirectionalStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_DocumentIdentifier> {
+    return self.makeBidirectionalStreamingCall(path: "/health_enclave.HealthEnclave/DocumentRequests2",
+                                               callOptions: callOptions ?? self.defaultCallOptions,
+                                               handler: handler)
   }
 
 }
 
 /// To build a server, implement a class that conforms to this protocol.
 public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
-  /// Sends a greeting
-  func sayHello(request: HealthEnclave_HelloRequest, context: StatusOnlyCallContext) -> EventLoopFuture<HealthEnclave_HelloReply>
+  /// The client sends a stream of document identifiers to the server.
+  /// The server shall delete local documents not contained in the clients stream.
+  /// The server shall respond with a stream of document identifiers that are locally not present.
+  func documentRequests(context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void>
+  func documentRequests2(context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void>
 }
 
 extension HealthEnclave_HealthEnclaveProvider {
-  public var serviceName: String { return "healthEnclave.HealthEnclave" }
+  public var serviceName: String { return "health_enclave.HealthEnclave" }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
   public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
-    case "SayHello":
-      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
-        return { request in
-          self.sayHello(request: request, context: context)
-        }
+    case "DocumentRequests":
+      return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+        return self.documentRequests(context: context)
+      }
+
+    case "DocumentRequests2":
+      return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+        return self.documentRequests2(context: context)
       }
 
     default: return nil
@@ -87,6 +114,5 @@ extension HealthEnclave_HealthEnclaveProvider {
 
 
 // Provides conformance to `GRPCPayload` for request and response messages
-extension HealthEnclave_HelloRequest: GRPCProtobufPayload {}
-extension HealthEnclave_HelloReply: GRPCProtobufPayload {}
+extension HealthEnclave_DocumentIdentifier: GRPCProtobufPayload {}
 

@@ -12,47 +12,55 @@ import NIOSSL
 
 import HealthEnclaveCommon
 
-
-class HealthEnclaveClient {
-    typealias ConnectionCallback = (_ result: Result<Void, Error>) -> Void
-    typealias ConnectionErrorCallback = (_ error: Error) -> Void
+class HealthEnclaveClient: ConnectivityStateDelegate {
+    
+    private var connectionCallback: ApplicationModel.ConnectionCallback?
     
     private let group: EventLoopGroup
-    private let client: HealthEnclave_HealthEnclaveClient
-    private let connectionErrorCallback: ConnectionErrorCallback
+    private var client: HealthEnclave_HealthEnclaveClient!
     
-    init(ipAddress: String, port: Int, certificate: NIOSSLCertificate, onConnectionError connectionErrorCallback: @escaping ConnectionErrorCallback) {
+    init(ipAddress: String,
+         port: Int,
+         certificate: NIOSSLCertificate,
+         onConnection connectionCallback: @escaping ApplicationModel.ConnectionCallback) {
+        self.connectionCallback = connectionCallback
+        
         group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         
         let configuration = ClientConnection.Configuration(
             target: .hostAndPort(ipAddress, port),
             eventLoopGroup: group,
+            connectivityStateDelegate: self,
             tls: ClientConnection.Configuration.TLS(
                 trustRoots: .certificates([certificate]),
                 certificateVerification: .noHostnameVerification),
+            // In this local setup, TLS conenction is expected to work on first try.
             connectionBackoff: nil
         )
         let channel = ClientConnection(configuration: configuration)
         
         client = HealthEnclave_HealthEnclaveClient(channel: channel)
-        self.connectionErrorCallback = connectionErrorCallback
     }
     
-    func handleConnectionError<T>(_ result: Result<T,Error>) {
-        if case let .failure(error) = result {
-            DispatchQueue.main.async {
-                self.connectionErrorCallback(error)
+    func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
+        if let connectionCallback = connectionCallback {
+            if(newState == .ready) {
+                connectionCallback(.success(()))
+                self.connectionCallback = nil
+            } else if(newState == .shutdown) {
+                connectionCallback(.failure(.connection))
+                self.connectionCallback = nil
             }
         }
     }
     
-    func establishConnection(onConnection connectionCallback: @escaping ConnectionCallback) {
-        let _ = client.sayHello(HealthEnclave_HelloRequest.with { $0.name = "Client" }).response
-            .always { self.handleConnectionError($0) }
-            .always { result in DispatchQueue.main.async { connectionCallback(result.map {_ in () }) } }
-            .always { result in
-                print(result)
+    func establishConnection() {
+        let call = client.documentRequests { documentIdentifier in
+            debugPrint(documentIdentifier)
         }
+        
+        let _ = call.sendMessage(HealthEnclave_DocumentIdentifier.with { $0.uuid = "1" })
+        
     }
     
     deinit {

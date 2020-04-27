@@ -2,6 +2,7 @@
 ## Health Enclave Terminal
 By default, the Terminal application tries setting up a wifi hotspot for the client devices to connect to.
 You can pass command-line arguments to change the default behaviour.
+TLS certificate and private key are mandatory,
 
 | Argument               | Description                                                                              |
 |------------------------|------------------------------------------------------------------------------------------|
@@ -13,7 +14,7 @@ You can pass command-line arguments to change the default behaviour.
 | -cert <cert.pem>       | PEM file containing TLS certificate chain. Required.                                     |
 | -key <key.pem>         | PEM file containing TLS private key. Required.                                           |
 
-Use e.g.  `./HealthEnclaveTerminal -hotspot false -ssid SomeSSID -password SomePassword` to let clients connect to an existing Wifi network instead of creating a hotspot.
+Use e.g.  `./HealthEnclaveTerminal -hotspot false -ssid SomeSSID -password SomePassword -cert cert.pem -key key.pem` to let clients connect to an existing Wifi network instead of creating a hotspot.
 
 ### Build
 Install prerequisites (see below).

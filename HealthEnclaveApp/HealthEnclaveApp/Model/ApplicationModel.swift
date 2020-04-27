@@ -67,11 +67,11 @@ class ApplicationModel: ObservableObject {
                     if case .failure = result {
                         self.isConnected = false
                         self.isConnecting = false
-                        connectedCallback(result)
+                        connectionCallback(result)
                     } else {
                         self.isConnected = true
                         self.isConnecting = false
-                        connectedCallback(.success(()))
+                        connectionCallback(.success(()))
                     }
                 }
             }
@@ -114,15 +114,10 @@ class ApplicationModel: ObservableObject {
     private func createClient(ipAddress: String,
                               port: Int,
                               certificate: NIOSSLCertificate,
-                              onConnect connectedCallback: @escaping ConnectedCallback) {
-        client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate) {error in
-            os_log(.error, "GRPC connection error: %@", error.localizedDescription)
-            self.disconnect()
-        }
+                              onConnect connectionCallback: @escaping ConnectionCallback) {
+        client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate, onConnection: connectionCallback)
         
-        client!.establishConnection { result in
-            connectedCallback(result.mapError { _ in ApplicationError.connection })
-        }
+        client!.establishConnection()
     }
     
     func disconnect() {
