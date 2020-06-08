@@ -26,11 +26,12 @@ struct ContentView: View {
                     Text("Connected to Terminal\nTransfering data...")
                         .multilineTextAlignment(.center)
                     Button("Disconnect", action: model.disconnect)
+                        .fixedSize()
                         .padding()
                         .foregroundColor(.white)
                         .background(Color.blue)
                         .cornerRadius(8)
-                    Text("Please leave the app in the\nforeground while data is\nbeing transferred.")
+                    Text("Please keep the app in\nforeground to continue data transfer.")
                         .multilineTextAlignment(.center)
                 }
             } else {
@@ -85,8 +86,8 @@ struct ContentView_Previews: PreviewProvider {
     class ApplicationModelMock: ApplicationModel {
         override init() {
             super.init()
-            self.isConnecting = true
-            self.isConnected = false
+            self.isConnecting = false
+            self.isConnected = true
         }
     }
     

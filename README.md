@@ -9,7 +9,7 @@ TLS certificate and private key are mandatory,
 | -hotspot <true/false>  | Enables/Disables Wifi Hotspot. Default: true                                             |
 | -ssid <SSID>           | SSID for Clients to connect to. Default: "Health Enclave Terminal" if Hotspot is enabled |
 | -password <pw>         | Password of Wifi Network for Clients. (only if Hotspot is enabled)                       |
-| -wifiInterface <iface> | Wifi Interface to use. Default "en0" on macOS, "wlan0" on Linux                          |
+| -interface <iface> | Network Interface to use. Default: "en0" on macOS, "wlan0" on Linux                          |
 | -port <#port>          | Port to listen on. Default: 42242                                                        |
 | -cert <cert.pem>       | PEM file containing TLS certificate chain. Required.                                     |
 | -key <key.pem>         | PEM file containing TLS private key. Required.                                           |

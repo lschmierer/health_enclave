@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Return IP address of WiFi interface (en0) as a String, or `nil`
+// Return IP address of given interface.
 func getIPAddress(ofInterface interfaceName: String) -> String? {
     var address: String?
     

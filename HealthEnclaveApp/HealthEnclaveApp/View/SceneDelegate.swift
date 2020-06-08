@@ -44,8 +44,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     func sendOpenForegroundNotification() {
         let content = UNMutableNotificationContent()
-        content.title = "Keep Health Enclave in the foreground"
-        content.body = "Tap here to open the Health Enclave in the foreground to continue data transfer."
+        content.title = "Keep Health Enclave in foreground"
+        content.body = "Please keep the Health Enclave in foreground to continue data transferred."
         content.sound = UNNotificationSound.defaultCritical
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)

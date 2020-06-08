@@ -14,19 +14,21 @@ import HealthEnclaveCommon
 
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.HealthEnclaveServer")
 
-class HealthEnclaveServer {
+enum ServerError: Error {
+    // Another client is already connected
+    case clientAlreadyConnected
+}
+
+class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     private let group: EventLoopGroup
-    //private var server: Server?
+    var clientConnected: Bool = false
     
     init(ipAddress: String, port: Int, certificateChain: [NIOSSLCertificate], privateKey: NIOSSLPrivateKey) {
         group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         
-        // Create a provider using the features we read.
-        let provider = HealthEnclaveProvider()
-        
         // Start the server and print its address once it has started.
         let server = Server.secure(group: group, certificateChain: certificateChain, privateKey: privateKey)
-            .withServiceProviders([provider])
+            .withServiceProviders([self])
             .bind(host: ipAddress, port: port)
         
         server.whenSuccess { server in
@@ -35,6 +37,28 @@ class HealthEnclaveServer {
             let _ = server.onClose.always { _ in
                 logger.info("Server closed")
             }
+        }
+    }
+    
+    func documentRequests(context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void> {
+        
+        if (!clientConnected) {
+            clientConnected = true
+            
+            return context.eventLoop.makeSucceededFuture({ event in
+                switch event {
+                case .message(let documentIdentifier):
+                    _ = context.sendResponse(documentIdentifier)
+                    
+                case .end:
+                    clientConnected = false
+                    context.statusPromise.succeed(.ok)
+                }
+            })
+        } else {
+            return context.eventLoop.makeSucceededFuture({ _ in
+                context.statusPromise.fail(ServerError.clientAlreadyConnected)
+            })
         }
     }
     

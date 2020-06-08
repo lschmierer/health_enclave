@@ -6,6 +6,8 @@
 //
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package health_enclave;
 
 // Interface exported by the server.
@@ -14,11 +16,12 @@ service HealthEnclave {
     // The server shall delete local documents not contained in the clients stream.
     // The server shall respond with a stream of document identifiers that are locally not present.
     rpc DocumentRequests(stream DocumentIdentifier) returns (stream DocumentIdentifier);
-    rpc DocumentRequests2(stream DocumentIdentifier) returns (stream DocumentIdentifier);
 }
 
 message DocumentIdentifier {
     string uuid = 1;
+    string name = 2;
+    google.protobuf.Timestamp createdAt = 3;
 }
 
 message WifiConfiguration {

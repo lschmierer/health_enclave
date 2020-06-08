@@ -63,6 +63,10 @@ class HealthEnclaveClient: ConnectivityStateDelegate {
             debugPrint(documentIdentifier)
         }
         
+        call.status.always { result in
+            debugPrint(result)
+        }
+        
         let _ = call.sendMessage(HealthEnclave_DocumentIdentifier.with { $0.uuid = "1" })
         
     }

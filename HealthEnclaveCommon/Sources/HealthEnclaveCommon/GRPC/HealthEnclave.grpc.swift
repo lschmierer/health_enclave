@@ -30,7 +30,6 @@ import SwiftProtobuf
 /// Usage: instantiate HealthEnclave_HealthEnclaveClient, then call methods of this protocol to make API calls.
 public protocol HealthEnclave_HealthEnclaveClientProtocol {
   func documentRequests(callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> BidirectionalStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_DocumentIdentifier>
-  func documentRequests2(callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> BidirectionalStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_DocumentIdentifier>
 }
 
 public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_HealthEnclaveClientProtocol {
@@ -64,21 +63,6 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
                                                handler: handler)
   }
 
-  /// Bidirectional streaming call to DocumentRequests2
-  ///
-  /// Callers should use the `send` method on the returned object to send messages
-  /// to the server. The caller should send an `.end` after the final message has been sent.
-  ///
-  /// - Parameters:
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
-  public func documentRequests2(callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> BidirectionalStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_DocumentIdentifier> {
-    return self.makeBidirectionalStreamingCall(path: "/health_enclave.HealthEnclave/DocumentRequests2",
-                                               callOptions: callOptions ?? self.defaultCallOptions,
-                                               handler: handler)
-  }
-
 }
 
 /// To build a server, implement a class that conforms to this protocol.
@@ -87,7 +71,6 @@ public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   /// The server shall delete local documents not contained in the clients stream.
   /// The server shall respond with a stream of document identifiers that are locally not present.
   func documentRequests(context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void>
-  func documentRequests2(context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void>
 }
 
 extension HealthEnclave_HealthEnclaveProvider {
@@ -100,11 +83,6 @@ extension HealthEnclave_HealthEnclaveProvider {
     case "DocumentRequests":
       return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
         return self.documentRequests(context: context)
-      }
-
-    case "DocumentRequests2":
-      return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
-        return self.documentRequests2(context: context)
       }
 
     default: return nil

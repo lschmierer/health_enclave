@@ -21,9 +21,9 @@ UserDefaults.standard.register(defaults: [
 ])
 
 #if os(macOS)
-UserDefaults.standard.register(defaults: ["wifiInterface": "en0"])
+UserDefaults.standard.register(defaults: ["interface": "en0"])
 #else
-UserDefaults.standard.register(defaults: ["wifiInterface": "wlan0"])
+UserDefaults.standard.register(defaults: ["nterface": "wlan0"])
 #endif
 
 logger.info("Starting HelathEnclaveTerminal...")

@@ -70,9 +70,9 @@ class ApplicationModel {
                 setupCallback(try! wifiConfiguration.jsonString())
             }
         } else {
-            let wifiInterface = UserDefaults.standard.string(forKey: "wifiInterface")!
-            guard let ipAddress = getIPAddress(ofInterface: wifiInterface) else {
-                throw ApplicationError.invalidNetwork("can not get ip address of interface \(wifiInterface)")
+            let interface = UserDefaults.standard.string(forKey: "interface")!
+            guard let ipAddress = getIPAddress(ofInterface: interface) else {
+                throw ApplicationError.invalidNetwork("can not get ip address of interface \(interface)")
             }
             let ssid = UserDefaults.standard.string(forKey: "ssid")!
             let password = UserDefaults.standard.string(forKey: "password")!

@@ -80,7 +80,7 @@ class ApplicationModel: ObservableObject {
     
     private func connectWifi(ssid: String, passphrase: String, onConnection connectionCallback: @escaping ConnectionCallback) {
         let hotspotConfiguration =  NEHotspotConfiguration(ssid: ssid, passphrase: passphrase, isWEP: false)
-        hotspotConfiguration.joinOnce = false
+        hotspotConfiguration.joinOnce = true
         
         NEHotspotConfigurationManager.shared.apply(hotspotConfiguration) { rawError in
             var nsError = rawError as NSError?
