@@ -42,6 +42,10 @@ struct ContentView: View {
                             return
                         }
                         self.lastQrData = data
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            self.lastQrData = nil
+                        }
+                        
                         self.model.connect(to: data) { result in
                             if case let .failure(error) = result {
                                 self.showAlert = true

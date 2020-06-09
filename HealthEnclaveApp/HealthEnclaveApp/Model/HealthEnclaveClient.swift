@@ -5,32 +5,35 @@
 //  Created by Lukas Schmierer on 04.04.20.
 //  Copyright © 2020 Lukas Schmierer. All rights reserved.
 //
+import Foundation
+import os
 import Dispatch
+import SwiftProtobuf
 import GRPC
 import NIO
 import NIOSSL
 
 import HealthEnclaveCommon
 
-class HealthEnclaveClient: ConnectivityStateDelegate {
-    
-    private var connectionCallback: ApplicationModel.ConnectionCallback?
-    
+private let keepAliveInterval: TimeAmount = .seconds(1)
+
+extension String: LocalizedError {
+    public var errorDescription: String? { return self }
+}
+
+class HealthEnclaveClient {
     private let group: EventLoopGroup
     private var client: HealthEnclave_HealthEnclaveClient!
+    private var keepAliveCall: BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>?
     
     init(ipAddress: String,
          port: Int,
-         certificate: NIOSSLCertificate,
-         onConnection connectionCallback: @escaping ApplicationModel.ConnectionCallback) {
-        self.connectionCallback = connectionCallback
-        
+         certificate: NIOSSLCertificate) {
         group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         
         let configuration = ClientConnection.Configuration(
             target: .hostAndPort(ipAddress, port),
             eventLoopGroup: group,
-            connectivityStateDelegate: self,
             tls: ClientConnection.Configuration.TLS(
                 trustRoots: .certificates([certificate]),
                 certificateVerification: .noHostnameVerification),
@@ -42,37 +45,43 @@ class HealthEnclaveClient: ConnectivityStateDelegate {
         client = HealthEnclave_HealthEnclaveClient(channel: channel)
     }
     
-    func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
-        if let connectionCallback = connectionCallback {
-            if(newState == .ready) {
-                DispatchQueue.main.async {
-                    connectionCallback(.success(()))
-                }
-                self.connectionCallback = nil
-            } else if(newState == .shutdown) {
-                DispatchQueue.main.async {
-                    connectionCallback(.failure(.connection))
-                }
-                self.connectionCallback = nil
+    func establishConnection(onConnect connectionCallback: @escaping ApplicationModel.ConnectionCallback) {
+        keepAliveCall = client.keepAlive { _ in
+            DispatchQueue.main.async {
+                connectionCallback(.success(()))
             }
         }
-    }
-    
-    func establishConnection() {
-        let call = client.documentRequests { documentIdentifier in
-            debugPrint(documentIdentifier)
+        
+        let _ = keepAliveCall?.status.always { result in
+            os_log(.error, "KeepAlive status: %@", String(reflecting: result))
+            guard case let .success(status) = result, status.code == .ok else {
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let status):
+                        let error = ApplicationError.connection(status.message)
+                        connectionCallback(.failure(error))
+                    case .failure(let error):
+                        connectionCallback(.failure(.connection(error)))
+                    }
+                }
+                return
+            }
         }
         
-        call.status.always { result in
-            debugPrint(result)
-        }
         
-        let _ = call.sendMessage(HealthEnclave_DocumentIdentifier.with { $0.uuid = "1" })
-        
+        group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { task in
+            guard let keepAliveCall = self.keepAliveCall else {
+                let cancelPromise: EventLoopPromise<Void> = self.group.next().makePromise()
+                task.cancel(promise: cancelPromise)
+                return cancelPromise.futureResult
+            }
+            return keepAliveCall.sendMessage(Google_Protobuf_Empty());
+        })
     }
     
-    deinit {
-        let _ = client.channel.close()
+    func disconnect() {
+        try! keepAliveCall?.sendEnd().wait()
+        try! client.channel.close().wait()
         try! group.syncShutdownGracefully()
     }
 }

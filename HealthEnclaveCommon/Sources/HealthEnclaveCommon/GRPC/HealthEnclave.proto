@@ -7,21 +7,96 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 package health_enclave;
 
 // Interface exported by the server.
+// The server is the Practitioner Terminal.
+// The client is the Patient Device.
 service HealthEnclave {
-    // The client sends a stream of document identifiers to the server.
-    // The server shall delete local documents not contained in the clients stream.
-    // The server shall respond with a stream of document identifiers that are locally not present.
-    rpc DocumentRequests(stream DocumentIdentifier) returns (stream DocumentIdentifier);
+    // Async stream for monitoring connection status.
+    //
+    // The client should send a message at least every 2 seconds.
+    // The server should respond immediateley.
+    rpc KeepAlive(stream google.protobuf.Empty) returns (stream google.protobuf.Empty);
+    
+    // The client streams a list of documents locally present on the device.
+    rpc AdvertiseDocumentsToTerminal(stream DocumentMetadata) returns (google.protobuf.Empty);
+    
+    // The server streams a list of documents that are not present on the device.
+    //
+    // The list may contain documents that are in fact present on the device, but
+    // not advertised to the server, yet.
+    rpc MissingDocumentsForDevice(google.protobuf.Empty) returns (stream DocumentIdentifier);
+    
+    // The server streams a list of documents that are not present on the terminal.
+    //
+    // The client shall treat received identifiers as LIFO queue.
+    // Documents requested last shall be transmitted first.
+    // This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
+    rpc MissingDocumentsForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
+    
+    // Stream a list of documents the server wants to obtain the corresponding keys for.
+    rpc MissingDocumentKeysForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
+    
+    // Transfer the document for the fiven uuid to the client.
+    //
+    // The key is either onefold (new documents) or twofold (restore backup) encrypted.
+    rpc TransferDocumentToDevice(DocumentIdentifier) returns (stream OneOrTwofoldEncyptedDocumentChunk);
+    
+    // Transfer a document from device to terminal.
+    rpc TransferDocumentToTerminal(TwofoldEncryptedDocumentChunk) returns (google.protobuf.Empty);
+    
+    // Transfer a key to the terminal.
+    rpc TransferDocumentKeyToTerminal(EncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
 }
 
 message DocumentIdentifier {
     string uuid = 1;
+}
+
+message DocumentMetadata {
+    DocumentIdentifier id = 1;
     string name = 2;
     google.protobuf.Timestamp createdAt = 3;
+    string createdBy = 4;
+}
+
+message EncryptedDocumentKey {
+    bytes data = 1;
+}
+
+message EncryptedDocumentKeyWithId {
+    DocumentIdentifier id = 1;
+    bytes data = 2;
+}
+
+message TwofoldEncryptedDocumentKey {
+    bytes data = 1;
+}
+
+message EncyptedDocumentChunk {
+  oneof content {
+    DocumentIdentifier identifier = 1;
+    EncryptedDocumentKey encryptedDocumentKey = 2;
+    bytes chunk = 3;
+  }
+}
+
+message TwofoldEncryptedDocumentChunk {
+  oneof content {
+    DocumentIdentifier identifier = 1;
+    TwofoldEncryptedDocumentKey twofoldEncryptedDocumentKey = 2;
+    bytes chunk = 3;
+  }
+}
+
+message OneOrTwofoldEncyptedDocumentChunk {
+  oneof content {
+    EncyptedDocumentChunk onefoldEncryptedDocumentChunk = 1;
+    TwofoldEncryptedDocumentChunk twofoldEncryptedDocumentChunk = 2;
+  }
 }
 
 message WifiConfiguration {

@@ -15,7 +15,7 @@ import HealthEnclaveCommon
 enum ApplicationError: Error {
     case wifiInvalidConfiguration
     case wifi(Error?)
-    case connection
+    case connection(Error?)
 }
 
 extension ApplicationError: LocalizedError {
@@ -27,10 +27,13 @@ extension ApplicationError: LocalizedError {
             if let errorDescription = error?.localizedDescription {
                 return errorDescription.prefix(1).capitalized + errorDescription.dropFirst()
             }
-        case .connection:
+            return "Wifi Error"
+        case .connection(let error):
+            if let errorDescription = error?.localizedDescription {
+                return errorDescription.prefix(1).capitalized + errorDescription.dropFirst()
+            }
             return "Connection Error"
         }
-        return "Unknown Error"
     }
 }
 
@@ -115,14 +118,19 @@ class ApplicationModel: ObservableObject {
                               port: Int,
                               certificate: NIOSSLCertificate,
                               onConnect connectionCallback: @escaping ConnectionCallback) {
-        client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate, onConnection: connectionCallback)
+        client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate)
         
-        client!.establishConnection()
+        client!.establishConnection { result in
+            connectionCallback(result)
+            if case .failure = result {
+                self.client = nil
+            }
+        }
     }
     
     func disconnect() {
         if(isConnected) {
-            client = nil
+            client?.disconnect()
             isConnected = false
             os_log(.info, "Disconnected");
         }
