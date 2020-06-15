@@ -20,9 +20,9 @@ enum ApplicationError: Error {
 }
 
 class ApplicationModel {
-    typealias ServerSetupCallback = (_ wifiConfiguration: String) -> Void
+    typealias SetupCompleteCallback = (_ wifiConfiguration: String) -> Void
     typealias DeviceConnectedCallback = () -> Void
-    
+    typealias SharedKeySetCallback = () -> Void
     
     init() throws {
         #if os(Linux)
@@ -32,18 +32,23 @@ class ApplicationModel {
         #endif
     }
     
+    private var sharedKeySetCallback: SharedKeySetCallback?
+    
     private let wifiHotspotController: WifiHotspotControllerProtocol?
     private var server: HealthEnclaveServer?
     
     func setupServer(
-        afterSetup setupCallback: @escaping ServerSetupCallback,
-        onDeviceConnected deviceConnectedCallback: @escaping DeviceConnectedCallback
+        onSetupComplete setupCompleteCallback: @escaping SetupCompleteCallback,
+        onDeviceConnected deviceConnectedCallback: @escaping DeviceConnectedCallback,
+        onSharedKeySet sharedKeySetCallback: @escaping SharedKeySetCallback
     ) throws {
+        self.sharedKeySetCallback = sharedKeySetCallback
+        
         let port =  UserDefaults.standard.integer(forKey: "port")
         let pemCert = UserDefaults.standard.string(forKey: "cert")!
         guard let certificateChain = try? NIOSSLCertificate.fromPEMFile(pemCert),
             let derCert = try? certificateChain.first?.toDERBytes() else {
-            throw ApplicationError.invalidCertificate(pemCert)
+                throw ApplicationError.invalidCertificate(pemCert)
         }
         
         let pemKey = UserDefaults.standard.string(forKey: "key")!
@@ -65,9 +70,9 @@ class ApplicationModel {
                 
                 logger.info("WifiHotspot created:\n\(wifiConfiguration)")
                 
-                self.server = HealthEnclaveServer(ipAddress: ipAddress, port: port, certificateChain: certificateChain, privateKey: privateKey)
+                self.server = HealthEnclaveServer(ipAddress: ipAddress, port: port, certificateChain: certificateChain, privateKey: privateKey, onDeviceConnected: deviceConnectedCallback)
                 
-                setupCallback(try! wifiConfiguration.jsonString())
+                setupCompleteCallback(try! wifiConfiguration.jsonString())
             }
         } else {
             let interface = UserDefaults.standard.string(forKey: "interface")!
@@ -85,11 +90,16 @@ class ApplicationModel {
                 $0.derCert = Data(derCert)
             }
             
-            server = HealthEnclaveServer(ipAddress: ipAddress, port: port, certificateChain: certificateChain, privateKey: privateKey)
+            server = HealthEnclaveServer(ipAddress: ipAddress, port: port, certificateChain: certificateChain, privateKey: privateKey, onDeviceConnected: deviceConnectedCallback)
             
             logger.info("External Wifi Configuration:\n\(wifiConfiguration)")
             
-            setupCallback(try! wifiConfiguration.jsonString())
+            setupCompleteCallback(try! wifiConfiguration.jsonString())
         }
+    }
+    
+    func setSharedKey(data sharedKey: Data) {
+        debugPrint(sharedKey)
+        sharedKeySetCallback?()
     }
 }

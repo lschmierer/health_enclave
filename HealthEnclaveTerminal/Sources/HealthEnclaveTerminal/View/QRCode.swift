@@ -46,7 +46,7 @@ class QRCode: DrawingArea {
         }
     }
     
-    func drawQRCode(_ cr: cairo.ContextProtocol) {
+    func drawQRCode(_ cr: ContextProtocol) {
         if let qrData = qrData {
             let rowLength = qrData.pointee.width
             let data = qrData.pointee.data!

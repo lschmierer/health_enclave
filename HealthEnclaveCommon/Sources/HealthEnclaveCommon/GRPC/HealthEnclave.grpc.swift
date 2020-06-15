@@ -55,7 +55,8 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
 
   /// Async stream for monitoring connection status.
   ///
-  /// This stream should be kept alive for the whole communication.
+  /// The client should send a message at least every 2 seconds.
+  /// The server should respond immediateley.
   ///
   /// Callers should use the `send` method on the returned object to send messages
   /// to the server. The caller should send an `.end` after the final message has been sent.
@@ -178,7 +179,8 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
 public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   /// Async stream for monitoring connection status.
   ///
-  /// This stream should be kept alive for the whole communication.
+  /// The client should send a message at least every 2 seconds.
+  /// The server should respond immediateley.
   func keepAlive(context: StreamingResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<SwiftProtobuf.Google_Protobuf_Empty>) -> Void>
   /// The client streams a list of documents locally present on the device.
   func advertiseDocumentsToTerminal(context: UnaryResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentMetadata>) -> Void>
