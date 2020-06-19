@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "OpenCombine",
+        "repositoryURL": "https://github.com/broadwaylamb/OpenCombine.git",
+        "state": {
+          "branch": null,
+          "revision": "59183ce0a5aa24b71f60d883440aa27c53d4eb16",
+          "version": "0.9.0"
+        }
+      },
+      {
         "package": "swift-crypto",
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
@@ -75,100 +84,100 @@
       },
       {
         "package": "Atk",
-        "repositoryURL": "https://github.com/mag911/SwiftAtk.git",
+        "repositoryURL": "https://github.com/rhx/SwiftAtk.git",
         "state": {
           "branch": "master",
-          "revision": "d0498f543d8af8c74e5df30e77c30e0d02764de1",
+          "revision": "25d67f57fd0a64d18ad73f4fa3c38e7b3f2c55df",
           "version": null
         }
       },
       {
         "package": "Cairo",
-        "repositoryURL": "https://github.com/mag911/SwiftCairo.git",
+        "repositoryURL": "https://github.com/rhx/SwiftCairo.git",
         "state": {
           "branch": "master",
-          "revision": "c84b9da071e5432478df71122ad7a3c1401335ba",
+          "revision": "e70560a8a1f1eb1ba1b486ead60e7f7640696ecc",
           "version": null
         }
       },
       {
         "package": "Gdk",
-        "repositoryURL": "https://github.com/mag911/SwiftGdk.git",
+        "repositoryURL": "https://github.com/rhx/SwiftGdk.git",
         "state": {
           "branch": "master",
-          "revision": "fe780b14681a45fabe332bfeef918f491cfd525c",
+          "revision": "8e987bcdf439e370456578dc42ae6fba53f1e4b4",
           "version": null
         }
       },
       {
         "package": "GdkPixbuf",
-        "repositoryURL": "https://github.com/mag911/SwiftGdkPixbuf.git",
+        "repositoryURL": "https://github.com/rhx/SwiftGdkPixbuf.git",
         "state": {
           "branch": "master",
-          "revision": "9baac36f78842468952f1e09a30194708e3296d4",
+          "revision": "15759ce084e62240a48f61e02183c3aeb87b92d5",
           "version": null
         }
       },
       {
         "package": "GIO",
-        "repositoryURL": "https://github.com/mag911/SwiftGIO.git",
+        "repositoryURL": "https://github.com/rhx/SwiftGIO.git",
         "state": {
           "branch": "master",
-          "revision": "ad0cdab1942a8c8866a38fba39dae3b557ebfcf9",
+          "revision": "a5608a0a57775ae3efa1779b9fba3c2937d8329e",
           "version": null
         }
       },
       {
         "package": "GLib",
-        "repositoryURL": "https://github.com/mag911/SwiftGLib.git",
+        "repositoryURL": "https://github.com/rhx/SwiftGLib.git",
         "state": {
           "branch": "master",
-          "revision": "e1a7da27e180e4f97ed89cf5de0a3d9461b87f51",
+          "revision": "83d66aa78a2a1cac98cbe33d700957b0bf70d66b",
           "version": null
         }
       },
       {
         "package": "GModule",
-        "repositoryURL": "https://github.com/mag911/SwiftGModule.git",
+        "repositoryURL": "https://github.com/rhx/SwiftGModule.git",
         "state": {
           "branch": "master",
-          "revision": "2d1f214035be882ca910cb6f27ee2c43e0a3b4cb",
+          "revision": "dea6e3f1a7c1da3d951effe1bd7187f58064a893",
           "version": null
         }
       },
       {
         "package": "GLibObject",
-        "repositoryURL": "https://github.com/mag911/SwiftGObject.git",
+        "repositoryURL": "https://github.com/rhx/SwiftGObject.git",
         "state": {
           "branch": "master",
-          "revision": "4075dc8fad79f9bed49bbb84615933c88b5a766f",
+          "revision": "8a8bd9daee003ae2a29e96200b7ebd28c939da05",
           "version": null
         }
       },
       {
         "package": "Gtk",
-        "repositoryURL": "https://github.com/mag911/SwiftGtk.git",
+        "repositoryURL": "https://github.com/rhx/SwiftGtk.git",
         "state": {
           "branch": "master",
-          "revision": "882a96b47962937936cf41617e3c434f87fb2124",
+          "revision": "d1f80fb579b12e578e830cb16219ca3cc6959881",
           "version": null
         }
       },
       {
         "package": "Pango",
-        "repositoryURL": "https://github.com/mag911/SwiftPango.git",
+        "repositoryURL": "https://github.com/rhx/SwiftPango.git",
         "state": {
           "branch": "master",
-          "revision": "e92b9b02419190ff61e03b6026f1b190e4bd9479",
+          "revision": "3ea7cde1386eb28eb70eb06e7dd26a281e3d7ba9",
           "version": null
         }
       },
       {
         "package": "PangoCairo",
-        "repositoryURL": "https://github.com/mag911/SwiftPangoCairo.git",
+        "repositoryURL": "https://github.com/rhx/SwiftPangoCairo.git",
         "state": {
           "branch": "master",
-          "revision": "2ee4e73e65ee84b81d7625941536899a8ae9958a",
+          "revision": "ca9f936d7a3efe8e1b76996bd08ca3333ff95d73",
           "version": null
         }
       }

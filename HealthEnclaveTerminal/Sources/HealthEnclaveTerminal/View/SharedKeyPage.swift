@@ -4,7 +4,6 @@
 //
 //  Created by Lukas Schmierer on 04.03.20.
 //
-import Foundation
 import Gtk
 
 class SharedKeyPage: Box {    

@@ -24,6 +24,11 @@ class ApplicationModel {
     typealias DeviceConnectedCallback = () -> Void
     typealias SharedKeySetCallback = () -> Void
     
+    private let wifiHotspotController: WifiHotspotControllerProtocol?
+    
+    private var server: HealthEnclaveServer?
+    private var sharedKeySetCallback: SharedKeySetCallback?
+    
     init() throws {
         #if os(Linux)
         wifiHotspotController = WifiHotspotControllerLinux()
@@ -31,11 +36,6 @@ class ApplicationModel {
         wifiHotspotController = nil
         #endif
     }
-    
-    private var sharedKeySetCallback: SharedKeySetCallback?
-    
-    private let wifiHotspotController: WifiHotspotControllerProtocol?
-    private var server: HealthEnclaveServer?
     
     func setupServer(
         onSetupComplete setupCompleteCallback: @escaping SetupCompleteCallback,
@@ -70,7 +70,11 @@ class ApplicationModel {
                 
                 logger.info("WifiHotspot created:\n\(wifiConfiguration)")
                 
-                self.server = HealthEnclaveServer(ipAddress: ipAddress, port: port, certificateChain: certificateChain, privateKey: privateKey, onDeviceConnected: deviceConnectedCallback)
+                server = HealthEnclaveServer(ipAddress: ipAddress,
+                                             port: port,
+                                             certificateChain: certificateChain,
+                                             privateKey: privateKey,
+                                             onDeviceConnected: deviceConnectedCallback)
                 
                 setupCompleteCallback(try! wifiConfiguration.jsonString())
             }
@@ -90,9 +94,13 @@ class ApplicationModel {
                 $0.derCert = Data(derCert)
             }
             
-            server = HealthEnclaveServer(ipAddress: ipAddress, port: port, certificateChain: certificateChain, privateKey: privateKey, onDeviceConnected: deviceConnectedCallback)
-            
             logger.info("External Wifi Configuration:\n\(wifiConfiguration)")
+            
+            server = HealthEnclaveServer(ipAddress: ipAddress,
+                                         port: port,
+                                         certificateChain: certificateChain,
+                                         privateKey: privateKey,
+                                         onDeviceConnected: deviceConnectedCallback)
             
             setupCompleteCallback(try! wifiConfiguration.jsonString())
         }
@@ -102,4 +110,6 @@ class ApplicationModel {
         debugPrint(sharedKey)
         sharedKeySetCallback?()
     }
+    
+    private func
 }

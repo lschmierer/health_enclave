@@ -37,7 +37,7 @@ class MainWindow: ApplicationWindow {
         self.model = model
         super.init(application: application)
         
-        add(events: CInt(EventMask.key_press_mask.rawValue))
+        add(events: .keyPressMask)
         connectKey(signal: "key_press_event") { _, event in
             let event = event._ptr.pointee
             
@@ -46,6 +46,7 @@ class MainWindow: ApplicationWindow {
                 self.onNewSharedKeyChar(char: Character(scalar))
             }
         }
+        
         
         title = "Health Enclave Terminal"
         setDefaultSize(width: 720, height: 540)
@@ -61,10 +62,12 @@ class MainWindow: ApplicationWindow {
                     self.page = ConnectPage(wifiConfiguration: wc)
             },
                 onDeviceConnected: {
+                    logger.debug("Showing SharedKeyPage...")
                     self.page = SharedKeyPage()
             },
                 onSharedKeySet: {
-                    self.page = nil
+                    logger.debug("Showing DocumentsPage...")
+                    self.page = DocumentsPage()
             })
         } catch {
             logger.error("Can not create server: \(error)")

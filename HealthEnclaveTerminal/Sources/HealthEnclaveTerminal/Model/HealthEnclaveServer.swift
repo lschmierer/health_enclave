@@ -37,15 +37,23 @@ enum ServerError: Error, GRPCStatusTransformable {
 }
 
 class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
+    typealias DeviceConnectionLostCallback = () -> Void
+    
     private let group: EventLoopGroup
     private let deviceConnectedCallback: ApplicationModel.DeviceConnectedCallback
+    private let deviceConnectionLostCallback: DeviceConnectionLostCallback
     var clientConnected: Bool = false
     var lastKeepAlive: Date!
     
-    init(ipAddress: String, port: Int, certificateChain: [NIOSSLCertificate], privateKey: NIOSSLPrivateKey,
-         onDeviceConnected deviceConnectedCallback: @escaping ApplicationModel.DeviceConnectedCallback) {
+    init(ipAddress: String,
+         port: Int,
+         certificateChain: [NIOSSLCertificate],
+         privateKey: NIOSSLPrivateKey,
+         onDeviceConnected deviceConnectedCallback: @escaping ApplicationModel.DeviceConnectedCallback,
+         onDeviceConnectionLost deviceConnectionLostCallback: @escaping DeviceConnectionLostCallback) {
         group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         self.deviceConnectedCallback = deviceConnectedCallback
+        self.deviceConnectionLostCallback = deviceConnectionLostCallback
         
         // Start the server and print its address once it has started.
         let server = Server.secure(group: group, certificateChain: certificateChain, privateKey: privateKey)
@@ -85,6 +93,7 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
                     
                 case .end:
                     logger.info("Client disconnected")
+                    self.deviceConnectionLostCallback()
                     self.clientConnected = false
                     context.statusPromise.succeed(.ok)
                 }
