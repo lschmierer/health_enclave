@@ -25,8 +25,7 @@ let package = Package(
         .target(name: "HealthEnclaveTerminal", dependencies: [
             .product(name: "Logging", package: "swift-log"),
             "OpenCombine",
-            "OpenCombineDispatch",
-            "OpenCombineFoundation",
+            .product(name: "OpenCombineDispatch", package: "OpenCombine"),
             "Gtk",
             "HealthEnclaveCommon",
             "CQREncode",

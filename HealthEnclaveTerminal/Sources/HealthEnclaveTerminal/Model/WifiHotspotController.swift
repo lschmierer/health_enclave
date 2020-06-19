@@ -5,7 +5,11 @@
 //  Created by Lukas Schmierer on 05.03.20.
 //
 
-import Foundation
+#if os(macOS)
+import Combine
+#else
+import OpenCombine
+#endif
 
 let defaultHotspotSSID = "Health Enclave Terminal"
 
@@ -13,8 +17,13 @@ enum HotsporError: Error {
     case invalidSSID
 }
 
-typealias CreateHotspotCallback = (_ ssid: String, _ password: String, _ ipAddress: String, _ isWEP: Bool) -> Void
+struct HotsporConfiguration {
+    let ssid: String
+    let password: String
+    let ipAddress: String
+    let isWEP: Bool
+}
 
 protocol WifiHotspotControllerProtocol {
-    func create(created: @escaping CreateHotspotCallback) throws
+    func create() -> Future<HotsporConfiguration, HotsporError>
 }

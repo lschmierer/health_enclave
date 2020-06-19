@@ -5,11 +5,17 @@
 //  Created by Lukas Schmierer on 03.04.20.
 //
 import Foundation
+import Logging
 import SwiftProtobuf
 import GRPC
 import NIO
 import NIOSSL
-import Logging
+
+#if os(macOS)
+import Combine
+#else
+import OpenCombine
+#endif
 
 import HealthEnclaveCommon
 
@@ -37,31 +43,33 @@ enum ServerError: Error, GRPCStatusTransformable {
 }
 
 class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
-    typealias DeviceConnectionLostCallback = () -> Void
+    private let _deviceConnectedSubject = PassthroughSubject<Void, Never>()
+    var deviceConnectedSubject: AnyPublisher<Void, Never> {
+        get { return _deviceConnectedSubject.eraseToAnyPublisher() }
+    }
+    
+    private let _deviceConnectionLostSubject = PassthroughSubject<Void, Never>()
+    var deviceConnectionLostSubject: AnyPublisher<Void, Never> {
+        get { return _deviceConnectionLostSubject.eraseToAnyPublisher() }
+    }
     
     private let group: EventLoopGroup
-    private let deviceConnectedCallback: ApplicationModel.DeviceConnectedCallback
-    private let deviceConnectionLostCallback: DeviceConnectionLostCallback
-    var clientConnected: Bool = false
-    var lastKeepAlive: Date!
+    private var server: Server?
     
-    init(ipAddress: String,
-         port: Int,
-         certificateChain: [NIOSSLCertificate],
-         privateKey: NIOSSLPrivateKey,
-         onDeviceConnected deviceConnectedCallback: @escaping ApplicationModel.DeviceConnectedCallback,
-         onDeviceConnectionLost deviceConnectionLostCallback: @escaping DeviceConnectionLostCallback) {
+    private var clientConnected: Bool = false
+    private var lastKeepAlive: Date!
+    
+    init(ipAddress: String, port: Int, certificateChain: [NIOSSLCertificate], privateKey: NIOSSLPrivateKey) {
         group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        self.deviceConnectedCallback = deviceConnectedCallback
-        self.deviceConnectionLostCallback = deviceConnectionLostCallback
-        
         // Start the server and print its address once it has started.
         let server = Server.secure(group: group, certificateChain: certificateChain, privateKey: privateKey)
             .withServiceProviders([self])
             .bind(host: ipAddress, port: port)
         
-        server.whenSuccess { server in
+        server.whenSuccess { [weak self] server in
             logger.info("Server listening on port: \(server.channel.localAddress!.port!)")
+            
+            self?.server = server
             
             let _ = server.onClose.always { _ in
                 logger.info("Server closed")
@@ -73,10 +81,12 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         
         if (!clientConnected) {
             logger.info("Client connected")
-            deviceConnectedCallback()
+            _deviceConnectedSubject.send()
             clientConnected = true
             
-            return context.eventLoop.makeSucceededFuture({ event in
+            return context.eventLoop.makeSucceededFuture( { [weak self] event in
+                guard let self = self else { return }
+                
                 switch event {
                 case .message(let msg):
                     self.lastKeepAlive = Date()
@@ -93,7 +103,7 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
                     
                 case .end:
                     logger.info("Client disconnected")
-                    self.deviceConnectionLostCallback()
+                    self._deviceConnectionLostSubject.send()
                     self.clientConnected = false
                     context.statusPromise.succeed(.ok)
                 }
@@ -133,7 +143,8 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         return context.eventLoop.makeFailedFuture(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
     }
     
-    deinit {
+    func close() {
+        try! server?.close().wait()
         try! group.syncShutdownGracefully()
     }
 }

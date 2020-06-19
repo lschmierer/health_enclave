@@ -8,7 +8,10 @@ import Gtk
 import CGtk
 
 class DocumentsPage: Box {
-    init() {
+    private let model: DeviceDocumentsModel
+    
+    init(model: DeviceDocumentsModel) {
+        self.model = model
         super.init(orientation: .vertical, spacing: 0)
         
         let toolbar = Toolbar()

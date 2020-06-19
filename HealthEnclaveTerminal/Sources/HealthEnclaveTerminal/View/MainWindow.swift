@@ -6,16 +6,25 @@
 //
 import Foundation
 import Logging
+import Dispatch
 import Gdk
 import Gtk
+
+#if os(macOS)
+import Combine
+#else
+import OpenCombine
+#endif
 
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.MainWindow")
 
 let keyBytesSize = 32
 
 class MainWindow: ApplicationWindow {
-    
-    let model: ApplicationModel
+    private let model: ApplicationModel
+    private var serverSetupCompleteSubscription: Cancellable?
+    private var serverDeviceConnectedSubscription: Cancellable?
+    private var serverSharedKeySetSubscription: Cancellable?
     
     var page: Widget? {
         willSet {
@@ -55,24 +64,34 @@ class MainWindow: ApplicationWindow {
         page = LoadingPage()
         add(page!)
         
-        do {
-            try model.setupServer(
-                onSetupComplete: { wc in
+        serverSetupCompleteSubscription = model.setupCompletedSubject
+            .receive(on: DispatchQueue.main)
+            .sink { (result) in
+                switch result {
+                case let .success(wifiConfiguration):
                     logger.debug("Showing ConnectPage...")
-                    self.page = ConnectPage(wifiConfiguration: wc)
-            },
-                onDeviceConnected: {
-                    logger.debug("Showing SharedKeyPage...")
-                    self.page = SharedKeyPage()
-            },
-                onSharedKeySet: {
-                    logger.debug("Showing DocumentsPage...")
-                    self.page = DocumentsPage()
-            })
-        } catch {
-            logger.error("Can not create server: \(error)")
-            application.quit()
+                    self.page = ConnectPage(wifiConfiguration: wifiConfiguration)
+                case let .failure(error):
+                    logger.error("Can not create server: \(error)")
+                    application.quit()
+                }
         }
+        
+        serverDeviceConnectedSubscription = model.deviceConnectedSubject
+            .receive(on: DispatchQueue.main)
+            .sink {
+                logger.debug("Showing SharedKeyPage...")
+                self.page = SharedKeyPage()
+        }
+        
+        serverSharedKeySetSubscription = model.sharedKeySetSubject
+            .receive(on: DispatchQueue.main)
+            .sink { deviceDocumentsModel in
+                logger.debug("Showing DocumentsPage...")
+                self.page = DocumentsPage(model: deviceDocumentsModel)
+        }
+        
+        model.setupServer()
     }
     
     func onNewSharedKeyChar(char: Character) {
