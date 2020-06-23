@@ -83,7 +83,7 @@ class ApplicationModel: ObservableObject {
     
     private func connectWifi(ssid: String, passphrase: String, onConnection connectionCallback: @escaping ConnectionCallback) {
         let hotspotConfiguration =  NEHotspotConfiguration(ssid: ssid, passphrase: passphrase, isWEP: false)
-        hotspotConfiguration.joinOnce = true
+        hotspotConfiguration.joinOnce = false
         
         NEHotspotConfigurationManager.shared.apply(hotspotConfiguration) { rawError in
             var nsError = rawError as NSError?
@@ -118,7 +118,13 @@ class ApplicationModel: ObservableObject {
                               port: Int,
                               certificate: NIOSSLCertificate,
                               onConnect connectionCallback: @escaping ConnectionCallback) {
-        client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate)
+        // TODO: create or loade deviceIdentifier
+        let deviceIdentifier = HealthEnclave_DeviceIdentifier.random()
+        
+        client = HealthEnclaveClient(ipAddress: ipAddress,
+                                     port: port,
+                                     certificate: certificate,
+                                     deviceIdentifier: deviceIdentifier)
         
         client!.establishConnection { result in
             connectionCallback(result)

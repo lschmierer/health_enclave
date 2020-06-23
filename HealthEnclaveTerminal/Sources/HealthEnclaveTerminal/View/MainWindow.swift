@@ -6,7 +6,6 @@
 //
 import Foundation
 import Logging
-import Dispatch
 import Gdk
 import Gtk
 
@@ -86,9 +85,9 @@ class MainWindow: ApplicationWindow {
         
         serverSharedKeySetSubscription = model.sharedKeySetSubject
             .receive(on: DispatchQueue.main)
-            .sink { deviceDocumentsModel in
+            .sink { documentsModel in
                 logger.debug("Showing DocumentsPage...")
-                self.page = DocumentsPage(model: deviceDocumentsModel)
+                self.page = DocumentsPage(model: documentsModel)
         }
         
         model.setupServer()
@@ -109,6 +108,6 @@ class MainWindow: ApplicationWindow {
     }
     
     func onNewSharedKey(key: Data) {
-        model.setSharedKey(data: key)
+        try? model.setSharedKey(data: key)
     }
 }

@@ -37,8 +37,13 @@ service HealthEnclave {
     // This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
     rpc MissingDocumentsForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
     
-    // Stream a list of documents the server wants to obtain the corresponding keys for.
-    rpc MissingDocumentKeysForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
+    // Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
+    // Thes keys give immediate access to documents.
+    rpc MissingEncryptedDocumentKeysForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
+    
+    // Stream a list of documents the server wants to obtain the corresponding twofold encrypted keys for.
+    // Thes keys do not give access to documents and are meant for backup purpose.
+    rpc MissingTwofoldEncryptedDocumentKeysForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
     
     // Transfer the document for the fiven uuid to the client.
     //
@@ -49,7 +54,10 @@ service HealthEnclave {
     rpc TransferDocumentToTerminal(TwofoldEncryptedDocumentChunk) returns (google.protobuf.Empty);
     
     // Transfer a key to the terminal.
-    rpc TransferDocumentKeyToTerminal(EncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
+    rpc TransferEncryptedDocumentKeyToTerminal(EncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
+    
+    // Transfer a key to the terminal.
+    rpc TransferTwofoldEncryptedDocumentKeyToTerminal(TwofoldEncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
 }
 
 message DocumentIdentifier {
@@ -69,11 +77,16 @@ message EncryptedDocumentKey {
 
 message EncryptedDocumentKeyWithId {
     DocumentIdentifier id = 1;
-    bytes data = 2;
+    EncryptedDocumentKey key = 2;
 }
 
 message TwofoldEncryptedDocumentKey {
     bytes data = 1;
+}
+
+message TwofoldEncryptedDocumentKeyWithId {
+    DocumentIdentifier id = 1;
+    TwofoldEncryptedDocumentKey key = 2;
 }
 
 message EncyptedDocumentChunk {
@@ -97,6 +110,10 @@ message OneOrTwofoldEncyptedDocumentChunk {
     EncyptedDocumentChunk onefoldEncryptedDocumentChunk = 1;
     TwofoldEncryptedDocumentChunk twofoldEncryptedDocumentChunk = 2;
   }
+}
+
+message DeviceIdentifier {
+    bytes data = 1;
 }
 
 message WifiConfiguration {

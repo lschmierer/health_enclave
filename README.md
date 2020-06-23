@@ -13,6 +13,7 @@ TLS certificate and private key are mandatory,
 | -port <#port>          | Port to listen on. Default: 42242                                                        |
 | -cert <cert.pem>       | PEM file containing TLS certificate chain. Required.                                     |
 | -key <key.pem>         | PEM file containing TLS private key. Required.                                           |
+| -practitioner <name>| Name of the practitioner. Used to tag documents.                |
 
 Use e.g.  `./HealthEnclaveTerminal -hotspot false -ssid SomeSSID -password SomePassword -cert cert.pem -key key.pem` to let clients connect to an existing Wifi network instead of creating a hotspot.
 

@@ -23,12 +23,14 @@ extension String: LocalizedError {
 
 class HealthEnclaveClient {
     private let group: EventLoopGroup
-    private var client: HealthEnclave_HealthEnclaveClient!
+    private var client: HealthEnclave_HealthEnclaveClient
+    private let deviceIdentifier: HealthEnclave_DeviceIdentifier
     private var keepAliveCall: BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>?
     
     init(ipAddress: String,
          port: Int,
-         certificate: NIOSSLCertificate) {
+         certificate: NIOSSLCertificate,
+         deviceIdentifier: HealthEnclave_DeviceIdentifier) {
         group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         
         let configuration = ClientConnection.Configuration(
@@ -43,10 +45,11 @@ class HealthEnclaveClient {
         let channel = ClientConnection(configuration: configuration)
         
         client = HealthEnclave_HealthEnclaveClient(channel: channel)
+        self.deviceIdentifier = deviceIdentifier
     }
     
     func establishConnection(onConnect connectionCallback: @escaping ApplicationModel.ConnectionCallback) {
-        keepAliveCall = client.keepAlive { _ in
+        keepAliveCall = client.keepAlive(callOptions: callOptions()) { _ in
             DispatchQueue.main.async {
                 connectionCallback(.success(()))
             }
@@ -77,6 +80,12 @@ class HealthEnclaveClient {
             }
             return keepAliveCall.sendMessage(Google_Protobuf_Empty());
         })
+    }
+    
+    private func callOptions() -> CallOptions {
+        return CallOptions(customMetadata: [
+            "deviceIdentifier": try! deviceIdentifier.jsonString()
+        ])
     }
     
     func disconnect() {

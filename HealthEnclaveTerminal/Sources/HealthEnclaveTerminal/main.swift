@@ -18,6 +18,7 @@ UserDefaults.standard.register(defaults: [
     "port": 42242,
     "cert": "",
     "key": "",
+    "practitioner": "",
 ])
 
 #if os(macOS)

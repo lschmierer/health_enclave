@@ -98,13 +98,21 @@ public struct HealthEnclave_EncryptedDocumentKeyWithId {
   /// Clears the value of `id`. Subsequent reads from it will return its default value.
   public mutating func clearID() {self._id = nil}
 
-  public var data: Data = SwiftProtobuf.Internal.emptyData
+  public var key: HealthEnclave_EncryptedDocumentKey {
+    get {return _key ?? HealthEnclave_EncryptedDocumentKey()}
+    set {_key = newValue}
+  }
+  /// Returns true if `key` has been explicitly set.
+  public var hasKey: Bool {return self._key != nil}
+  /// Clears the value of `key`. Subsequent reads from it will return its default value.
+  public mutating func clearKey() {self._key = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _id: HealthEnclave_DocumentIdentifier? = nil
+  fileprivate var _key: HealthEnclave_EncryptedDocumentKey? = nil
 }
 
 public struct HealthEnclave_TwofoldEncryptedDocumentKey {
@@ -117,6 +125,37 @@ public struct HealthEnclave_TwofoldEncryptedDocumentKey {
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+}
+
+public struct HealthEnclave_TwofoldEncryptedDocumentKeyWithId {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: HealthEnclave_DocumentIdentifier {
+    get {return _id ?? HealthEnclave_DocumentIdentifier()}
+    set {_id = newValue}
+  }
+  /// Returns true if `id` has been explicitly set.
+  public var hasID: Bool {return self._id != nil}
+  /// Clears the value of `id`. Subsequent reads from it will return its default value.
+  public mutating func clearID() {self._id = nil}
+
+  public var key: HealthEnclave_TwofoldEncryptedDocumentKey {
+    get {return _key ?? HealthEnclave_TwofoldEncryptedDocumentKey()}
+    set {_key = newValue}
+  }
+  /// Returns true if `key` has been explicitly set.
+  public var hasKey: Bool {return self._key != nil}
+  /// Clears the value of `key`. Subsequent reads from it will return its default value.
+  public mutating func clearKey() {self._key = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _id: HealthEnclave_DocumentIdentifier? = nil
+  fileprivate var _key: HealthEnclave_TwofoldEncryptedDocumentKey? = nil
 }
 
 public struct HealthEnclave_EncyptedDocumentChunk {
@@ -268,6 +307,18 @@ public struct HealthEnclave_OneOrTwofoldEncyptedDocumentChunk {
   public init() {}
 }
 
+public struct HealthEnclave_DeviceIdentifier {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var data: Data = SwiftProtobuf.Internal.emptyData
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct HealthEnclave_WifiConfiguration {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -401,14 +452,14 @@ extension HealthEnclave_EncryptedDocumentKeyWithId: SwiftProtobuf.Message, Swift
   public static let protoMessageName: String = _protobuf_package + ".EncryptedDocumentKeyWithId"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
-    2: .same(proto: "data"),
+    2: .same(proto: "key"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularMessageField(value: &self._id)
-      case 2: try decoder.decodeSingularBytesField(value: &self.data)
+      case 2: try decoder.decodeSingularMessageField(value: &self._key)
       default: break
       }
     }
@@ -418,15 +469,15 @@ extension HealthEnclave_EncryptedDocumentKeyWithId: SwiftProtobuf.Message, Swift
     if let v = self._id {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }
-    if !self.data.isEmpty {
-      try visitor.visitSingularBytesField(value: self.data, fieldNumber: 2)
+    if let v = self._key {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: HealthEnclave_EncryptedDocumentKeyWithId, rhs: HealthEnclave_EncryptedDocumentKeyWithId) -> Bool {
     if lhs._id != rhs._id {return false}
-    if lhs.data != rhs.data {return false}
+    if lhs._key != rhs._key {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -456,6 +507,41 @@ extension HealthEnclave_TwofoldEncryptedDocumentKey: SwiftProtobuf.Message, Swif
 
   public static func ==(lhs: HealthEnclave_TwofoldEncryptedDocumentKey, rhs: HealthEnclave_TwofoldEncryptedDocumentKey) -> Bool {
     if lhs.data != rhs.data {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension HealthEnclave_TwofoldEncryptedDocumentKeyWithId: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TwofoldEncryptedDocumentKeyWithId"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "key"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularMessageField(value: &self._id)
+      case 2: try decoder.decodeSingularMessageField(value: &self._key)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if let v = self._id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }
+    if let v = self._key {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: HealthEnclave_TwofoldEncryptedDocumentKeyWithId, rhs: HealthEnclave_TwofoldEncryptedDocumentKeyWithId) -> Bool {
+    if lhs._id != rhs._id {return false}
+    if lhs._key != rhs._key {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -619,6 +705,35 @@ extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunk: SwiftProtobuf.Message
 
   public static func ==(lhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunk, rhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunk) -> Bool {
     if lhs.content != rhs.content {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension HealthEnclave_DeviceIdentifier: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DeviceIdentifier"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "data"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularBytesField(value: &self.data)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.data.isEmpty {
+      try visitor.visitSingularBytesField(value: self.data, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: HealthEnclave_DeviceIdentifier, rhs: HealthEnclave_DeviceIdentifier) -> Bool {
+    if lhs.data != rhs.data {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

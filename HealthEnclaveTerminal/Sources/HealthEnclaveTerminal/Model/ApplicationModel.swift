@@ -23,6 +23,7 @@ enum ApplicationError: Error {
     case invalidPrivateKey(String)
     case invalidNetwork(String)
     case invalidHotspot(Error)
+    case invalidSharedKey
 }
 
 class ApplicationModel {
@@ -36,8 +37,8 @@ class ApplicationModel {
         get { return _deviceConnectedSubject.eraseToAnyPublisher() }
     }
     
-    private let _sharedKeySetSubject = PassthroughSubject<DeviceDocumentsModel, Never>()
-    var sharedKeySetSubject: AnyPublisher<DeviceDocumentsModel, Never> {
+    private let _sharedKeySetSubject = PassthroughSubject<DocumentsModel, Never>()
+    var sharedKeySetSubject: AnyPublisher<DocumentsModel, Never> {
         get { return _sharedKeySetSubject.eraseToAnyPublisher() }
     }
     
@@ -132,10 +133,10 @@ class ApplicationModel {
         serverDeviceConnectionLostSubscription = server?.deviceConnectionLostSubject
             .receive(on: DispatchQueue.global())
             .sink() { [weak self] in
-            logger.info("Destroying server...")
-            self?.destroyServer()
-            logger.info("Restarting server...")
-            self?.setupServer()
+                logger.info("Destroying server...")
+                self?.destroyServer()
+                logger.info("Restarting server...")
+                self?.setupServer()
         }
     }
     
@@ -145,8 +146,14 @@ class ApplicationModel {
         serverDeviceConnectionLostSubscription?.cancel()
     }
     
-    func setSharedKey(data sharedKey: Data) {
-        debugPrint(sharedKey)
-        _sharedKeySetSubject.send(DeviceDocumentsModel())
+    func setSharedKey(data sharedKey: Data) throws {
+        do {
+            _sharedKeySetSubject.send(
+                DocumentsModel(sharedKey: try TerminalCryptography.SharedKey(data: sharedKey),
+                                     documentStore: DocumentStore(for: server!.connectedDevice!),
+                                     server: server!))
+        } catch {
+            throw ApplicationError.invalidSharedKey
+        }
     }
 }

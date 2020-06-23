@@ -31,12 +31,17 @@ enum ServerError: Error, GRPCStatusTransformable {
     // Client timed out
     case clientTimedOut
     
+    // Client timed out
+    case clientInvalidIdentifier
+    
     func makeGRPCStatus() -> GRPCStatus {
         switch self {
         case .clientAlreadyConnected:
             return GRPCStatus(code: .resourceExhausted, message: "another client is already connected")
         case .clientTimedOut:
             return GRPCStatus(code: .unavailable, message: "client timed out")
+        case .clientInvalidIdentifier:
+            return GRPCStatus(code: .invalidArgument, message: "no or invalid device identifier")
         }
         
     }
@@ -53,10 +58,18 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         get { return _deviceConnectionLostSubject.eraseToAnyPublisher() }
     }
     
+    let missingDocumentsForDeviceSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
+    private var missingDocumentsForDeviceSubscription: Cancellable?
+    
+    private let _twofoldEncryptedDocumentKeySubject = PassthroughSubject<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, Never>()
+    var twofoldEncryptedDocumentKeySubject: AnyPublisher<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, Never> {
+        get { return _twofoldEncryptedDocumentKeySubject.eraseToAnyPublisher() }
+    }
+    
     private let group: EventLoopGroup
     private var server: Server?
     
-    private var clientConnected: Bool = false
+    private(set) var connectedDevice: HealthEnclave_DeviceIdentifier?
     private var lastKeepAlive: Date!
     
     init(ipAddress: String, port: Int, certificateChain: [NIOSSLCertificate], privateKey: NIOSSLPrivateKey) {
@@ -77,73 +90,152 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         }
     }
     
-    func keepAlive(context: StreamingResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<Google_Protobuf_Empty>) -> Void> {
-        
-        if (!clientConnected) {
-            logger.info("Client connected")
-            _deviceConnectedSubject.send()
-            clientConnected = true
-            
-            return context.eventLoop.makeSucceededFuture( { [weak self] event in
-                guard let self = self else { return }
-                
-                switch event {
-                case .message(let msg):
-                    self.lastKeepAlive = Date()
-                    self.group.next().scheduleTask(in: keepAliveTimeout, {
-                        let timeInterval = TimeInterval(keepAliveTimeout.nanoseconds / (1000 * 1000 * 1000))
-                        if self.clientConnected, Date() > self.lastKeepAlive + timeInterval {
-                            logger.info("Client connection lost")
-                            
-                            self.clientConnected = false
-                            context.statusPromise.fail(ServerError.clientTimedOut)                       }
-                    })
-                    
-                    _ = context.sendResponse(msg)
-                    
-                case .end:
-                    logger.info("Client disconnected")
-                    self._deviceConnectionLostSubject.send()
-                    self.clientConnected = false
-                    context.statusPromise.succeed(.ok)
+    func keepAlive(context: StreamingResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>)
+        -> EventLoopFuture<(StreamEvent<Google_Protobuf_Empty>) -> Void> {
+            if (connectedDevice == nil) {
+                let deviceIdentifierHeaders = context.request.headers["deviceIdentifier"]
+                guard !deviceIdentifierHeaders.isEmpty else {
+                    logger.info("Client sent no identifier")
+                    return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
                 }
-            })
-        } else {
-            return context.eventLoop.makeFailedFuture(ServerError.clientAlreadyConnected)
+                
+                do {
+                    connectedDevice = try HealthEnclave_DeviceIdentifier.init(jsonString: deviceIdentifierHeaders[0])
+                } catch {
+                    logger.info("Client sent invalid identifier")
+                    return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
+                }
+                
+                logger.info("Client connected")
+                
+                _deviceConnectedSubject.send()
+                
+                return context.eventLoop.makeSucceededFuture( { event in
+                    switch event {
+                    case .message(let msg):
+                        self.lastKeepAlive = Date()
+                        self.group.next().scheduleTask(in: keepAliveTimeout, {
+                            let timeInterval = TimeInterval(keepAliveTimeout.nanoseconds / (1000 * 1000 * 1000))
+                            if self.connectedDevice != nil,
+                                Date() > self.lastKeepAlive + timeInterval {
+                                logger.info("Client connection lost")
+                                self._deviceConnectionLostSubject.send()
+                                self.connectedDevice = nil
+                                context.statusPromise.fail(ServerError.clientTimedOut)                       }
+                        })
+                        
+                        _ = context.sendResponse(msg)
+                        
+                    case .end:
+                        logger.info("Client disconnected")
+                        self._deviceConnectionLostSubject.send()
+                        self.connectedDevice = nil
+                        context.statusPromise.succeed(.ok)
+                    }
+                })
+            } else {
+                return context.eventLoop.makeFailedFuture(ServerError.clientAlreadyConnected)
+            }
+    }
+    
+    func advertiseDocumentsToTerminal(context: UnaryResponseCallContext<Google_Protobuf_Empty>)
+        -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentMetadata>) -> Void> {
+            return checkClient(context).flatMapThrowing {
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    
+    func missingDocumentsForDevice(request: Google_Protobuf_Empty,
+                                   context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
+        -> EventLoopFuture<GRPCStatus> {
+            return checkClient(context).flatMapThrowing {
+                
+                
+                
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    func missingDocumentsForTerminal(request: Google_Protobuf_Empty,
+                                     context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
+        -> EventLoopFuture<GRPCStatus> {
+            return checkClient(context).flatMapThrowing {
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    func missingEncryptedDocumentKeysForTerminal(request: Google_Protobuf_Empty,
+                                                 context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
+        -> EventLoopFuture<GRPCStatus> {
+            return checkClient(context).flatMapThrowing {
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    func missingTwofoldEncryptedDocumentKeysForTerminal(request: Google_Protobuf_Empty,
+                                                        context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
+        -> EventLoopFuture<GRPCStatus> {
+            return checkClient(context).flatMapThrowing {
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier,
+                                  context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunk>)
+        -> EventLoopFuture<GRPCStatus> {
+            return checkClient(context).flatMapThrowing {
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentChunk,
+                                    context: StatusOnlyCallContext)
+        -> EventLoopFuture<Google_Protobuf_Empty> {
+            return checkClient(context).flatMapThrowing {
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    func transferEncryptedDocumentKeyToTerminal(request: HealthEnclave_EncryptedDocumentKeyWithId,
+                                                context: StatusOnlyCallContext)
+        -> EventLoopFuture<Google_Protobuf_Empty> {
+            return checkClient(context).flatMapThrowing {
+                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            }
+    }
+    
+    func transferTwofoldEncryptedDocumentKeyToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId,
+                                                       context: StatusOnlyCallContext)
+        -> EventLoopFuture<Google_Protobuf_Empty> {
+            return checkClient(context).map {
+                self._twofoldEncryptedDocumentKeySubject.send(request)
+                return Google_Protobuf_Empty()
+            }
+    }
+    
+    func checkClient(_ context: ServerCallContext) -> EventLoopFuture<Void> {
+        let deviceIdentifierHeaders = context.request.headers["deviceIdentifier"]
+        guard !deviceIdentifierHeaders.isEmpty else {
+            logger.info("Client sent no identifier")
+            return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
+        }
+        
+        do {
+            let deviceIdentifier = try HealthEnclave_DeviceIdentifier.init(jsonString: deviceIdentifierHeaders[0])
+            if deviceIdentifier != connectedDevice {
+                throw ServerError.clientInvalidIdentifier
+            }
+            return context.eventLoop.makeSucceededFuture(Void())
+        } catch {
+            logger.info("Client sent invalid identifier")
+            return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
         }
     }
     
-    func advertiseDocumentsToTerminal(context: UnaryResponseCallContext<Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentMetadata>) -> Void> {
-        return context.eventLoop.makeSucceededFuture({ _ in
-            context.responsePromise.fail(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
-        })
-    }
-    
-    func missingDocumentsForDevice(request: Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus> {
-        return context.eventLoop.makeFailedFuture(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
-    }
-    
-    func missingDocumentsForTerminal(request: Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus> {
-        return context.eventLoop.makeFailedFuture(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
-    }
-    
-    func missingDocumentKeysForTerminal(request: Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus> {
-        return context.eventLoop.makeFailedFuture(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
-    }
-    
-    func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier, context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunk>) -> EventLoopFuture<GRPCStatus> {
-        return context.eventLoop.makeFailedFuture(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
-    }
-    
-    func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentChunk, context: StatusOnlyCallContext) -> EventLoopFuture<Google_Protobuf_Empty> {
-        return context.eventLoop.makeFailedFuture(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
-    }
-    
-    func transferDocumentKeyToTerminal(request: HealthEnclave_EncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<Google_Protobuf_Empty> {
-        return context.eventLoop.makeFailedFuture(GRPCStatus(code: .unimplemented, message: "not implemented yet"))
-    }
-    
     func close() {
+        missingDocumentsForDeviceSubject.send(completion: .finished)
+        missingDocumentsForDeviceSubscription?.cancel()
         try! server?.close().wait()
         try! group.syncShutdownGracefully()
     }

@@ -4,13 +4,14 @@
 //
 //  Created by Lukas Schmierer on 15.06.20.
 //
+import Foundation
 import Gtk
 import CGtk
 
 class DocumentsPage: Box {
-    private let model: DeviceDocumentsModel
+    private let model: DocumentsModel
     
-    init(model: DeviceDocumentsModel) {
+    init(model: DocumentsModel) {
         self.model = model
         super.init(orientation: .vertical, spacing: 0)
         
@@ -34,21 +35,21 @@ class DocumentsPage: Box {
         nameColumn.title = "Document"
         nameColumn.resizable = true
         nameColumn.expand = true
-        treeView.append(column: nameColumn)
+        _ = treeView.append(column: nameColumn)
         
         let createdAtColumn = TreeViewColumn(1)
         createdAtColumn.title = "Created At"
         createdAtColumn.minWidth = 200
         createdAtColumn.resizable = true
         createdAtColumn.expand = false
-        treeView.append(column: createdAtColumn)
+        _ = treeView.append(column: createdAtColumn)
         
         let createdByColumn = TreeViewColumn(2)
         createdByColumn.title = "Created By"
         createdByColumn.minWidth = 200
         createdByColumn.resizable = true
         createdByColumn.expand = false
-        treeView.append(column: createdByColumn)
+        _ = treeView.append(column: createdByColumn)
         
         add(widgets: [toolbar, treeView])
         showAll()
@@ -63,7 +64,7 @@ class DocumentsPage: Box {
                                        secondResponseType: .accept)
         if (dialog.run() == ResponseType.accept.rawValue)
         {
-            debugPrint(dialog.filename)
+            try! model.addDocumentToDevice(file: URL(fileURLWithPath: dialog.filename))
         }
         dialog.destroy()
     }
