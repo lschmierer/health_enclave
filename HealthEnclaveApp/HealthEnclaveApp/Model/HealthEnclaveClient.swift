@@ -24,13 +24,14 @@ extension String: LocalizedError {
 class HealthEnclaveClient {
     private let group: EventLoopGroup
     private var client: HealthEnclave_HealthEnclaveClient
-    private let deviceIdentifier: HealthEnclave_DeviceIdentifier
+    private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
     private var keepAliveCall: BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>?
+    private var missingDocumentsCall: ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclaveCommon.HealthEnclave_DocumentIdentifier>?
     
     init(ipAddress: String,
          port: Int,
          certificate: NIOSSLCertificate,
-         deviceIdentifier: HealthEnclave_DeviceIdentifier) {
+         deviceIdentifier: DeviceCryptography.DeviceIdentifier) {
         group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         
         let configuration = ClientConnection.Configuration(
@@ -55,8 +56,7 @@ class HealthEnclaveClient {
             }
         }
         
-        let _ = keepAliveCall?.status.always { result in
-            os_log(.error, "KeepAlive status: %@", String(reflecting: result))
+        _ = keepAliveCall?.status.always { result in
             guard case let .success(status) = result, status.code == .ok else {
                 DispatchQueue.main.async {
                     switch result {
@@ -80,11 +80,17 @@ class HealthEnclaveClient {
             }
             return keepAliveCall.sendMessage(Google_Protobuf_Empty());
         })
+        
+        missingDocumentsCall = client.missingDocumentsForDevice(Google_Protobuf_Empty(), callOptions: callOptions()) { identifier in
+            _ = self.client.transferDocumentToDevice(identifier, callOptions: self.callOptions()) { documentChunked in
+                os_log(.info, "Received: %@", String(reflecting: documentChunked))
+            }
+        }
     }
     
     private func callOptions() -> CallOptions {
         return CallOptions(customMetadata: [
-            "deviceIdentifier": try! deviceIdentifier.jsonString()
+            "deviceIdentifier": try! deviceIdentifier.hexEncodedString
         ])
     }
     

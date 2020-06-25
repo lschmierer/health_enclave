@@ -25,17 +25,25 @@ class DocumentsModel {
     private let server: HealthEnclaveServer
     
     private var twofoldEncryptedDocumentKeySubscription: Cancellable?
+    private var transferDocumentToDeviceRequestSubscription: Cancellable?
     
     init(sharedKey: TerminalCryptography.SharedKey, documentStore: DocumentStore, server: HealthEnclaveServer) {
         self.sharedKey = sharedKey
         self.documentStore = documentStore
         self.server = server
         
-        // Store twofold encrypted key when received
+        // Store twofold encrypted key when received.
         twofoldEncryptedDocumentKeySubscription = server.twofoldEncryptedDocumentKeySubject
+            .receive(on: DispatchQueue.main)
             .sink { twofoldEncryptedDocumentKeyWithId in
-                documentStore.addTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
-                                                             for: twofoldEncryptedDocumentKeyWithId.id)
+                try! documentStore.addTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
+                                                                  for: twofoldEncryptedDocumentKeyWithId.id)
+        }
+        // Transfer document to device.
+        transferDocumentToDeviceRequestSubscription = server.transferDocumentToDeviceRequestSubject
+            .receive(on: DispatchQueue.main)
+            .sink() { (identifier, documentStreamSubject) in
+                try! documentStore.requestDocumentStream(for: identifier, on: documentStreamSubject)
         }
     }
     
@@ -57,7 +65,7 @@ class DocumentsModel {
             using: sharedKey,
             authenticating: documentMetadata)
         
-        documentStore.addNewEncryptedDocument(encryptedDocument, with: documentMetadata, encryptedWith: encryptedDocumentKey)
+        try documentStore.addNewEncryptedDocument(encryptedDocument, with: documentMetadata, encryptedWith: encryptedDocumentKey)
         
         server.missingDocumentsForDeviceSubject.send(documentIdentifier)
     }

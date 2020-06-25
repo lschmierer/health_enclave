@@ -108,6 +108,10 @@ class MainWindow: ApplicationWindow {
     }
     
     func onNewSharedKey(key: Data) {
-        try? model.setSharedKey(data: key)
+        do {
+            try model.setSharedKey(data: key)
+        } catch {
+            logger.error("Error setting shared key: \(error)")
+        }
     }
 }

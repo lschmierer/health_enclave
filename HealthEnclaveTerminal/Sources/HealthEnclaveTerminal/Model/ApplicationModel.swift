@@ -150,8 +150,8 @@ class ApplicationModel {
         do {
             _sharedKeySetSubject.send(
                 DocumentsModel(sharedKey: try TerminalCryptography.SharedKey(data: sharedKey),
-                                     documentStore: DocumentStore(for: server!.connectedDevice!),
-                                     server: server!))
+                               documentStore: try! DocumentStore(for: server!.connectedDevice!),
+                               server: server!))
         } catch {
             throw ApplicationError.invalidSharedKey
         }

@@ -35,8 +35,8 @@ public protocol HealthEnclave_HealthEnclaveClientProtocol {
   func missingDocumentsForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
   func missingEncryptedDocumentKeysForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
   func missingTwofoldEncryptedDocumentKeysForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
-  func transferDocumentToDevice(_ request: HealthEnclave_DocumentIdentifier, callOptions: CallOptions?, handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunk) -> Void) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunk>
-  func transferDocumentToTerminal(_ request: HealthEnclave_TwofoldEncryptedDocumentChunk, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_TwofoldEncryptedDocumentChunk, SwiftProtobuf.Google_Protobuf_Empty>
+  func transferDocumentToDevice(_ request: HealthEnclave_DocumentIdentifier, callOptions: CallOptions?, handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunked) -> Void) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>
+  func transferDocumentToTerminal(_ request: HealthEnclave_TwofoldEncyptedDocumentChunked, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_TwofoldEncyptedDocumentChunked, SwiftProtobuf.Google_Protobuf_Empty>
   func transferEncryptedDocumentKeyToTerminal(_ request: HealthEnclave_EncryptedDocumentKeyWithId, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_EncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty>
   func transferTwofoldEncryptedDocumentKeyToTerminal(_ request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty>
 }
@@ -160,7 +160,7 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
   ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
   ///   - handler: A closure called when each response is received from the server.
   /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func transferDocumentToDevice(_ request: HealthEnclave_DocumentIdentifier, callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunk) -> Void) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunk> {
+  public func transferDocumentToDevice(_ request: HealthEnclave_DocumentIdentifier, callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunked) -> Void) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunked> {
     return self.makeServerStreamingCall(path: "/health_enclave.HealthEnclave/TransferDocumentToDevice",
                                         request: request,
                                         callOptions: callOptions ?? self.defaultCallOptions,
@@ -173,13 +173,13 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
   ///   - request: Request to send to TransferDocumentToTerminal.
   ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func transferDocumentToTerminal(_ request: HealthEnclave_TwofoldEncryptedDocumentChunk, callOptions: CallOptions? = nil) -> UnaryCall<HealthEnclave_TwofoldEncryptedDocumentChunk, SwiftProtobuf.Google_Protobuf_Empty> {
+  public func transferDocumentToTerminal(_ request: HealthEnclave_TwofoldEncyptedDocumentChunked, callOptions: CallOptions? = nil) -> UnaryCall<HealthEnclave_TwofoldEncyptedDocumentChunked, SwiftProtobuf.Google_Protobuf_Empty> {
     return self.makeUnaryCall(path: "/health_enclave.HealthEnclave/TransferDocumentToTerminal",
                               request: request,
                               callOptions: callOptions ?? self.defaultCallOptions)
   }
 
-  /// Transfer a key to the terminal.
+  /// Transfer a onefold encrypted key to the terminal.
   ///
   /// - Parameters:
   ///   - request: Request to send to TransferEncryptedDocumentKeyToTerminal.
@@ -191,7 +191,7 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
                               callOptions: callOptions ?? self.defaultCallOptions)
   }
 
-  /// Transfer a key to the terminal.
+  /// Transfer a twofold encrypted key to the terminal.
   ///
   /// - Parameters:
   ///   - request: Request to send to TransferTwofoldEncryptedDocumentKeyToTerminal.
@@ -234,12 +234,12 @@ public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   /// Transfer the document for the fiven uuid to the client.
   ///
   /// The key is either onefold (new documents) or twofold (restore backup) encrypted.
-  func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier, context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunk>) -> EventLoopFuture<GRPCStatus>
+  func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier, context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>) -> EventLoopFuture<GRPCStatus>
   /// Transfer a document from device to terminal.
-  func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentChunk, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-  /// Transfer a key to the terminal.
+  func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncyptedDocumentChunked, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
+  /// Transfer a onefold encrypted key to the terminal.
   func transferEncryptedDocumentKeyToTerminal(request: HealthEnclave_EncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-  /// Transfer a key to the terminal.
+  /// Transfer a twofold encrypted key to the terminal.
   func transferTwofoldEncryptedDocumentKeyToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
 }
 
@@ -326,8 +326,8 @@ extension HealthEnclave_HealthEnclaveProvider {
 extension SwiftProtobuf.Google_Protobuf_Empty: GRPCProtobufPayload {}
 extension HealthEnclave_DocumentMetadata: GRPCProtobufPayload {}
 extension HealthEnclave_DocumentIdentifier: GRPCProtobufPayload {}
-extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunk: GRPCProtobufPayload {}
-extension HealthEnclave_TwofoldEncryptedDocumentChunk: GRPCProtobufPayload {}
+extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
+extension HealthEnclave_TwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
 extension HealthEnclave_EncryptedDocumentKeyWithId: GRPCProtobufPayload {}
 extension HealthEnclave_TwofoldEncryptedDocumentKeyWithId: GRPCProtobufPayload {}
 

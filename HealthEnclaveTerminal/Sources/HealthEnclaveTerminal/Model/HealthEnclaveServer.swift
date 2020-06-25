@@ -61,6 +61,13 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     let missingDocumentsForDeviceSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
     private var missingDocumentsForDeviceSubscription: Cancellable?
     
+    let _transferDocumentToDeviceRequestSubject =
+        PassthroughSubject<(HealthEnclave_DocumentIdentifier, PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>), Never>();
+    var transferDocumentToDeviceRequestSubject:
+        AnyPublisher<(HealthEnclave_DocumentIdentifier, PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>), Never> {
+        get { return _transferDocumentToDeviceRequestSubject.eraseToAnyPublisher() }
+    }
+    
     private let _twofoldEncryptedDocumentKeySubject = PassthroughSubject<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, Never>()
     var twofoldEncryptedDocumentKeySubject: AnyPublisher<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, Never> {
         get { return _twofoldEncryptedDocumentKeySubject.eraseToAnyPublisher() }
@@ -69,7 +76,7 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     private let group: EventLoopGroup
     private var server: Server?
     
-    private(set) var connectedDevice: HealthEnclave_DeviceIdentifier?
+    private(set) var connectedDevice: DeviceCryptography.DeviceIdentifier?
     private var lastKeepAlive: Date!
     
     init(ipAddress: String, port: Int, certificateChain: [NIOSSLCertificate], privateKey: NIOSSLPrivateKey) {
@@ -95,16 +102,15 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
             if (connectedDevice == nil) {
                 let deviceIdentifierHeaders = context.request.headers["deviceIdentifier"]
                 guard !deviceIdentifierHeaders.isEmpty else {
-                    logger.info("Client sent no identifier")
+                    logger.error("Client sent no identifier")
                     return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
                 }
                 
-                do {
-                    connectedDevice = try HealthEnclave_DeviceIdentifier.init(jsonString: deviceIdentifierHeaders[0])
-                } catch {
-                    logger.info("Client sent invalid identifier")
+                guard let connectedDevice =  DeviceCryptography.DeviceIdentifier(hexEncoded: deviceIdentifierHeaders[0]) else {
+                    logger.error("Client sent invalid identifier")
                     return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
                 }
+                self.connectedDevice = connectedDevice
                 
                 logger.info("Client connected")
                 
@@ -149,11 +155,18 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     func missingDocumentsForDevice(request: Google_Protobuf_Empty,
                                    context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
         -> EventLoopFuture<GRPCStatus> {
-            return checkClient(context).flatMapThrowing {
+            return checkClient(context).flatMap {
+                let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
                 
+                self.missingDocumentsForDeviceSubscription = self.missingDocumentsForDeviceSubject
+                    .sink(
+                        receiveCompletion: {_ in
+                            promise.succeed(.ok)
+                    }, receiveValue: { documentIdentifier in
+                        _ = context.sendResponse(documentIdentifier)
+                    })
                 
-                
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+                return promise.futureResult
             }
     }
     
@@ -182,14 +195,30 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     }
     
     func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier,
-                                  context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunk>)
+                                  context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>)
         -> EventLoopFuture<GRPCStatus> {
-            return checkClient(context).flatMapThrowing {
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            return checkClient(context).flatMap {
+                let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
+                
+                let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>()
+                
+                let documentStreamSubscription = documentStreamSubject.sink(
+                    receiveCompletion: { _ in
+                        promise.succeed(.ok)
+                }) { chunk in
+                    _ = context.sendResponse(chunk)
+                }
+                
+                self._transferDocumentToDeviceRequestSubject
+                    .send((request, documentStreamSubject))
+                
+                return promise.futureResult.always { _ in
+                    documentStreamSubscription.cancel()
+                }
             }
     }
     
-    func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentChunk,
+    func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncyptedDocumentChunked,
                                     context: StatusOnlyCallContext)
         -> EventLoopFuture<Google_Protobuf_Empty> {
             return checkClient(context).flatMapThrowing {
@@ -217,18 +246,18 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     func checkClient(_ context: ServerCallContext) -> EventLoopFuture<Void> {
         let deviceIdentifierHeaders = context.request.headers["deviceIdentifier"]
         guard !deviceIdentifierHeaders.isEmpty else {
-            logger.info("Client sent no identifier")
+            logger.error("Client sent no identifier")
             return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
         }
         
         do {
-            let deviceIdentifier = try HealthEnclave_DeviceIdentifier.init(jsonString: deviceIdentifierHeaders[0])
+            let deviceIdentifier = try DeviceCryptography.DeviceIdentifier(hexEncoded: deviceIdentifierHeaders[0])
             if deviceIdentifier != connectedDevice {
                 throw ServerError.clientInvalidIdentifier
             }
             return context.eventLoop.makeSucceededFuture(Void())
         } catch {
-            logger.info("Client sent invalid identifier")
+            logger.error("Client sent invalid identifier")
             return context.eventLoop.makeFailedFuture(ServerError.clientInvalidIdentifier)
         }
     }

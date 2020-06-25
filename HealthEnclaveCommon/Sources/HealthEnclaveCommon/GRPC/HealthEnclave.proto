@@ -48,15 +48,15 @@ service HealthEnclave {
     // Transfer the document for the fiven uuid to the client.
     //
     // The key is either onefold (new documents) or twofold (restore backup) encrypted.
-    rpc TransferDocumentToDevice(DocumentIdentifier) returns (stream OneOrTwofoldEncyptedDocumentChunk);
+    rpc TransferDocumentToDevice(DocumentIdentifier) returns (stream OneOrTwofoldEncyptedDocumentChunked);
     
     // Transfer a document from device to terminal.
-    rpc TransferDocumentToTerminal(TwofoldEncryptedDocumentChunk) returns (google.protobuf.Empty);
+    rpc TransferDocumentToTerminal(TwofoldEncyptedDocumentChunked) returns (google.protobuf.Empty);
     
-    // Transfer a key to the terminal.
+    // Transfer a onefold encrypted key to the terminal.
     rpc TransferEncryptedDocumentKeyToTerminal(EncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
     
-    // Transfer a key to the terminal.
+    // Transfer a twofold encrypted key to the terminal.
     rpc TransferTwofoldEncryptedDocumentKeyToTerminal(TwofoldEncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
 }
 
@@ -89,31 +89,27 @@ message TwofoldEncryptedDocumentKeyWithId {
     TwofoldEncryptedDocumentKey key = 2;
 }
 
-message EncyptedDocumentChunk {
+message OneOrTwofoldEncyptedDocumentKey {
   oneof content {
-    DocumentIdentifier identifier = 1;
-    EncryptedDocumentKey encryptedDocumentKey = 2;
+    EncryptedDocumentKey onefoldEncryptedKey = 1;
+    TwofoldEncryptedDocumentKey twofoldEncryptedKey = 2;
+  }
+}
+
+message TwofoldEncyptedDocumentChunked {
+  oneof content {
+    DocumentMetadata metadata = 1;
+    TwofoldEncryptedDocumentKey key = 2;
     bytes chunk = 3;
   }
 }
 
-message TwofoldEncryptedDocumentChunk {
+message OneOrTwofoldEncyptedDocumentChunked {
   oneof content {
-    DocumentIdentifier identifier = 1;
-    TwofoldEncryptedDocumentKey twofoldEncryptedDocumentKey = 2;
+    DocumentMetadata metadata = 1;
+    OneOrTwofoldEncyptedDocumentKey key = 2;
     bytes chunk = 3;
   }
-}
-
-message OneOrTwofoldEncyptedDocumentChunk {
-  oneof content {
-    EncyptedDocumentChunk onefoldEncryptedDocumentChunk = 1;
-    TwofoldEncryptedDocumentChunk twofoldEncryptedDocumentChunk = 2;
-  }
-}
-
-message DeviceIdentifier {
-    bytes data = 1;
 }
 
 message WifiConfiguration {

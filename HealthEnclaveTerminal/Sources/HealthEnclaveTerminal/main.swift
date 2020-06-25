@@ -10,6 +10,16 @@ LoggingSystem.bootstrap { label in
 
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.main")
 
+let applicationSupportDirectory = try! FileManager.default.url(for: .applicationSupportDirectory,
+                                                               in: .userDomainMask,
+                                                               appropriateFor: nil,
+                                                               create: true).appendingPathComponent("HealthEnclaveTerminal", isDirectory: true)
+if !FileManager.default.fileExists(atPath: applicationSupportDirectory.path) {
+    try! FileManager.default.createDirectory(at: applicationSupportDirectory,
+                                             withIntermediateDirectories: false,
+                                             attributes: nil)
+}
+
 logger.info("Setting up UserDefaults...")
 UserDefaults.standard.register(defaults: [
     "hotspot": true,

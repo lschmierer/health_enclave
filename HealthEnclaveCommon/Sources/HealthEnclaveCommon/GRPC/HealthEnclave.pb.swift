@@ -158,80 +158,70 @@ public struct HealthEnclave_TwofoldEncryptedDocumentKeyWithId {
   fileprivate var _key: HealthEnclave_TwofoldEncryptedDocumentKey? = nil
 }
 
-public struct HealthEnclave_EncyptedDocumentChunk {
+public struct HealthEnclave_OneOrTwofoldEncyptedDocumentKey {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var content: HealthEnclave_EncyptedDocumentChunk.OneOf_Content? = nil
+  public var content: HealthEnclave_OneOrTwofoldEncyptedDocumentKey.OneOf_Content? = nil
 
-  public var identifier: HealthEnclave_DocumentIdentifier {
+  public var onefoldEncryptedKey: HealthEnclave_EncryptedDocumentKey {
     get {
-      if case .identifier(let v)? = content {return v}
-      return HealthEnclave_DocumentIdentifier()
-    }
-    set {content = .identifier(newValue)}
-  }
-
-  public var encryptedDocumentKey: HealthEnclave_EncryptedDocumentKey {
-    get {
-      if case .encryptedDocumentKey(let v)? = content {return v}
+      if case .onefoldEncryptedKey(let v)? = content {return v}
       return HealthEnclave_EncryptedDocumentKey()
     }
-    set {content = .encryptedDocumentKey(newValue)}
+    set {content = .onefoldEncryptedKey(newValue)}
   }
 
-  public var chunk: Data {
+  public var twofoldEncryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey {
     get {
-      if case .chunk(let v)? = content {return v}
-      return SwiftProtobuf.Internal.emptyData
-    }
-    set {content = .chunk(newValue)}
-  }
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public enum OneOf_Content: Equatable {
-    case identifier(HealthEnclave_DocumentIdentifier)
-    case encryptedDocumentKey(HealthEnclave_EncryptedDocumentKey)
-    case chunk(Data)
-
-  #if !swift(>=4.1)
-    public static func ==(lhs: HealthEnclave_EncyptedDocumentChunk.OneOf_Content, rhs: HealthEnclave_EncyptedDocumentChunk.OneOf_Content) -> Bool {
-      switch (lhs, rhs) {
-      case (.identifier(let l), .identifier(let r)): return l == r
-      case (.encryptedDocumentKey(let l), .encryptedDocumentKey(let r)): return l == r
-      case (.chunk(let l), .chunk(let r)): return l == r
-      default: return false
-      }
-    }
-  #endif
-  }
-
-  public init() {}
-}
-
-public struct HealthEnclave_TwofoldEncryptedDocumentChunk {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var content: HealthEnclave_TwofoldEncryptedDocumentChunk.OneOf_Content? = nil
-
-  public var identifier: HealthEnclave_DocumentIdentifier {
-    get {
-      if case .identifier(let v)? = content {return v}
-      return HealthEnclave_DocumentIdentifier()
-    }
-    set {content = .identifier(newValue)}
-  }
-
-  public var twofoldEncryptedDocumentKey: HealthEnclave_TwofoldEncryptedDocumentKey {
-    get {
-      if case .twofoldEncryptedDocumentKey(let v)? = content {return v}
+      if case .twofoldEncryptedKey(let v)? = content {return v}
       return HealthEnclave_TwofoldEncryptedDocumentKey()
     }
-    set {content = .twofoldEncryptedDocumentKey(newValue)}
+    set {content = .twofoldEncryptedKey(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Content: Equatable {
+    case onefoldEncryptedKey(HealthEnclave_EncryptedDocumentKey)
+    case twofoldEncryptedKey(HealthEnclave_TwofoldEncryptedDocumentKey)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: HealthEnclave_OneOrTwofoldEncyptedDocumentKey.OneOf_Content, rhs: HealthEnclave_OneOrTwofoldEncyptedDocumentKey.OneOf_Content) -> Bool {
+      switch (lhs, rhs) {
+      case (.onefoldEncryptedKey(let l), .onefoldEncryptedKey(let r)): return l == r
+      case (.twofoldEncryptedKey(let l), .twofoldEncryptedKey(let r)): return l == r
+      default: return false
+      }
+    }
+  #endif
+  }
+
+  public init() {}
+}
+
+public struct HealthEnclave_TwofoldEncyptedDocumentChunked {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var content: HealthEnclave_TwofoldEncyptedDocumentChunked.OneOf_Content? = nil
+
+  public var metadata: HealthEnclave_DocumentMetadata {
+    get {
+      if case .metadata(let v)? = content {return v}
+      return HealthEnclave_DocumentMetadata()
+    }
+    set {content = .metadata(newValue)}
+  }
+
+  public var key: HealthEnclave_TwofoldEncryptedDocumentKey {
+    get {
+      if case .key(let v)? = content {return v}
+      return HealthEnclave_TwofoldEncryptedDocumentKey()
+    }
+    set {content = .key(newValue)}
   }
 
   public var chunk: Data {
@@ -245,15 +235,15 @@ public struct HealthEnclave_TwofoldEncryptedDocumentChunk {
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Content: Equatable {
-    case identifier(HealthEnclave_DocumentIdentifier)
-    case twofoldEncryptedDocumentKey(HealthEnclave_TwofoldEncryptedDocumentKey)
+    case metadata(HealthEnclave_DocumentMetadata)
+    case key(HealthEnclave_TwofoldEncryptedDocumentKey)
     case chunk(Data)
 
   #if !swift(>=4.1)
-    public static func ==(lhs: HealthEnclave_TwofoldEncryptedDocumentChunk.OneOf_Content, rhs: HealthEnclave_TwofoldEncryptedDocumentChunk.OneOf_Content) -> Bool {
+    public static func ==(lhs: HealthEnclave_TwofoldEncyptedDocumentChunked.OneOf_Content, rhs: HealthEnclave_TwofoldEncyptedDocumentChunked.OneOf_Content) -> Bool {
       switch (lhs, rhs) {
-      case (.identifier(let l), .identifier(let r)): return l == r
-      case (.twofoldEncryptedDocumentKey(let l), .twofoldEncryptedDocumentKey(let r)): return l == r
+      case (.metadata(let l), .metadata(let r)): return l == r
+      case (.key(let l), .key(let r)): return l == r
       case (.chunk(let l), .chunk(let r)): return l == r
       default: return false
       }
@@ -264,57 +254,55 @@ public struct HealthEnclave_TwofoldEncryptedDocumentChunk {
   public init() {}
 }
 
-public struct HealthEnclave_OneOrTwofoldEncyptedDocumentChunk {
+public struct HealthEnclave_OneOrTwofoldEncyptedDocumentChunked {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var content: HealthEnclave_OneOrTwofoldEncyptedDocumentChunk.OneOf_Content? = nil
+  public var content: HealthEnclave_OneOrTwofoldEncyptedDocumentChunked.OneOf_Content? = nil
 
-  public var onefoldEncryptedDocumentChunk: HealthEnclave_EncyptedDocumentChunk {
+  public var metadata: HealthEnclave_DocumentMetadata {
     get {
-      if case .onefoldEncryptedDocumentChunk(let v)? = content {return v}
-      return HealthEnclave_EncyptedDocumentChunk()
+      if case .metadata(let v)? = content {return v}
+      return HealthEnclave_DocumentMetadata()
     }
-    set {content = .onefoldEncryptedDocumentChunk(newValue)}
+    set {content = .metadata(newValue)}
   }
 
-  public var twofoldEncryptedDocumentChunk: HealthEnclave_TwofoldEncryptedDocumentChunk {
+  public var key: HealthEnclave_OneOrTwofoldEncyptedDocumentKey {
     get {
-      if case .twofoldEncryptedDocumentChunk(let v)? = content {return v}
-      return HealthEnclave_TwofoldEncryptedDocumentChunk()
+      if case .key(let v)? = content {return v}
+      return HealthEnclave_OneOrTwofoldEncyptedDocumentKey()
     }
-    set {content = .twofoldEncryptedDocumentChunk(newValue)}
+    set {content = .key(newValue)}
+  }
+
+  public var chunk: Data {
+    get {
+      if case .chunk(let v)? = content {return v}
+      return SwiftProtobuf.Internal.emptyData
+    }
+    set {content = .chunk(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Content: Equatable {
-    case onefoldEncryptedDocumentChunk(HealthEnclave_EncyptedDocumentChunk)
-    case twofoldEncryptedDocumentChunk(HealthEnclave_TwofoldEncryptedDocumentChunk)
+    case metadata(HealthEnclave_DocumentMetadata)
+    case key(HealthEnclave_OneOrTwofoldEncyptedDocumentKey)
+    case chunk(Data)
 
   #if !swift(>=4.1)
-    public static func ==(lhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunk.OneOf_Content, rhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunk.OneOf_Content) -> Bool {
+    public static func ==(lhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunked.OneOf_Content, rhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunked.OneOf_Content) -> Bool {
       switch (lhs, rhs) {
-      case (.onefoldEncryptedDocumentChunk(let l), .onefoldEncryptedDocumentChunk(let r)): return l == r
-      case (.twofoldEncryptedDocumentChunk(let l), .twofoldEncryptedDocumentChunk(let r)): return l == r
+      case (.metadata(let l), .metadata(let r)): return l == r
+      case (.key(let l), .key(let r)): return l == r
+      case (.chunk(let l), .chunk(let r)): return l == r
       default: return false
       }
     }
   #endif
   }
-
-  public init() {}
-}
-
-public struct HealthEnclave_DeviceIdentifier {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var data: Data = SwiftProtobuf.Internal.emptyData
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 }
@@ -547,90 +535,82 @@ extension HealthEnclave_TwofoldEncryptedDocumentKeyWithId: SwiftProtobuf.Message
   }
 }
 
-extension HealthEnclave_EncyptedDocumentChunk: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".EncyptedDocumentChunk"
+extension HealthEnclave_OneOrTwofoldEncyptedDocumentKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".OneOrTwofoldEncyptedDocumentKey"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "identifier"),
-    2: .same(proto: "encryptedDocumentKey"),
-    3: .same(proto: "chunk"),
+    1: .same(proto: "onefoldEncryptedKey"),
+    2: .same(proto: "twofoldEncryptedKey"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1:
-        var v: HealthEnclave_DocumentIdentifier?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .identifier(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .identifier(v)}
-      case 2:
         var v: HealthEnclave_EncryptedDocumentKey?
         if let current = self.content {
           try decoder.handleConflictingOneOf()
-          if case .encryptedDocumentKey(let m) = current {v = m}
+          if case .onefoldEncryptedKey(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .encryptedDocumentKey(v)}
-      case 3:
-        if self.content != nil {try decoder.handleConflictingOneOf()}
-        var v: Data?
-        try decoder.decodeSingularBytesField(value: &v)
-        if let v = v {self.content = .chunk(v)}
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    switch self.content {
-    case .identifier(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    case .encryptedDocumentKey(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    case .chunk(let v)?:
-      try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
-    case nil: break
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: HealthEnclave_EncyptedDocumentChunk, rhs: HealthEnclave_EncyptedDocumentChunk) -> Bool {
-    if lhs.content != rhs.content {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension HealthEnclave_TwofoldEncryptedDocumentChunk: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".TwofoldEncryptedDocumentChunk"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "identifier"),
-    2: .same(proto: "twofoldEncryptedDocumentKey"),
-    3: .same(proto: "chunk"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1:
-        var v: HealthEnclave_DocumentIdentifier?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .identifier(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .identifier(v)}
+        if let v = v {self.content = .onefoldEncryptedKey(v)}
       case 2:
         var v: HealthEnclave_TwofoldEncryptedDocumentKey?
         if let current = self.content {
           try decoder.handleConflictingOneOf()
-          if case .twofoldEncryptedDocumentKey(let m) = current {v = m}
+          if case .twofoldEncryptedKey(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .twofoldEncryptedDocumentKey(v)}
+        if let v = v {self.content = .twofoldEncryptedKey(v)}
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    switch self.content {
+    case .onefoldEncryptedKey(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    case .twofoldEncryptedKey(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: HealthEnclave_OneOrTwofoldEncyptedDocumentKey, rhs: HealthEnclave_OneOrTwofoldEncyptedDocumentKey) -> Bool {
+    if lhs.content != rhs.content {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension HealthEnclave_TwofoldEncyptedDocumentChunked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TwofoldEncyptedDocumentChunked"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "metadata"),
+    2: .same(proto: "key"),
+    3: .same(proto: "chunk"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1:
+        var v: HealthEnclave_DocumentMetadata?
+        if let current = self.content {
+          try decoder.handleConflictingOneOf()
+          if case .metadata(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.content = .metadata(v)}
+      case 2:
+        var v: HealthEnclave_TwofoldEncryptedDocumentKey?
+        if let current = self.content {
+          try decoder.handleConflictingOneOf()
+          if case .key(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.content = .key(v)}
       case 3:
         if self.content != nil {try decoder.handleConflictingOneOf()}
         var v: Data?
@@ -643,9 +623,9 @@ extension HealthEnclave_TwofoldEncryptedDocumentChunk: SwiftProtobuf.Message, Sw
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     switch self.content {
-    case .identifier(let v)?:
+    case .metadata(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    case .twofoldEncryptedDocumentKey(let v)?:
+    case .key(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     case .chunk(let v)?:
       try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
@@ -654,39 +634,45 @@ extension HealthEnclave_TwofoldEncryptedDocumentChunk: SwiftProtobuf.Message, Sw
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: HealthEnclave_TwofoldEncryptedDocumentChunk, rhs: HealthEnclave_TwofoldEncryptedDocumentChunk) -> Bool {
+  public static func ==(lhs: HealthEnclave_TwofoldEncyptedDocumentChunked, rhs: HealthEnclave_TwofoldEncyptedDocumentChunked) -> Bool {
     if lhs.content != rhs.content {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunk: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".OneOrTwofoldEncyptedDocumentChunk"
+extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".OneOrTwofoldEncyptedDocumentChunked"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "onefoldEncryptedDocumentChunk"),
-    2: .same(proto: "twofoldEncryptedDocumentChunk"),
+    1: .same(proto: "metadata"),
+    2: .same(proto: "key"),
+    3: .same(proto: "chunk"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1:
-        var v: HealthEnclave_EncyptedDocumentChunk?
+        var v: HealthEnclave_DocumentMetadata?
         if let current = self.content {
           try decoder.handleConflictingOneOf()
-          if case .onefoldEncryptedDocumentChunk(let m) = current {v = m}
+          if case .metadata(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .onefoldEncryptedDocumentChunk(v)}
+        if let v = v {self.content = .metadata(v)}
       case 2:
-        var v: HealthEnclave_TwofoldEncryptedDocumentChunk?
+        var v: HealthEnclave_OneOrTwofoldEncyptedDocumentKey?
         if let current = self.content {
           try decoder.handleConflictingOneOf()
-          if case .twofoldEncryptedDocumentChunk(let m) = current {v = m}
+          if case .key(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .twofoldEncryptedDocumentChunk(v)}
+        if let v = v {self.content = .key(v)}
+      case 3:
+        if self.content != nil {try decoder.handleConflictingOneOf()}
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {self.content = .chunk(v)}
       default: break
       }
     }
@@ -694,46 +680,19 @@ extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunk: SwiftProtobuf.Message
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     switch self.content {
-    case .onefoldEncryptedDocumentChunk(let v)?:
+    case .metadata(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    case .twofoldEncryptedDocumentChunk(let v)?:
+    case .key(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    case .chunk(let v)?:
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunk, rhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunk) -> Bool {
+  public static func ==(lhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, rhs: HealthEnclave_OneOrTwofoldEncyptedDocumentChunked) -> Bool {
     if lhs.content != rhs.content {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension HealthEnclave_DeviceIdentifier: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".DeviceIdentifier"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "data"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeSingularBytesField(value: &self.data)
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.data.isEmpty {
-      try visitor.visitSingularBytesField(value: self.data, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: HealthEnclave_DeviceIdentifier, rhs: HealthEnclave_DeviceIdentifier) -> Bool {
-    if lhs.data != rhs.data {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
