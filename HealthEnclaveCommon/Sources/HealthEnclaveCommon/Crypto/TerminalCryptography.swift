@@ -10,7 +10,11 @@ public enum TerminalCryptography {
     public struct SharedKey {
         let key: CryptoPrimitives.SymmetricKey
         
-        public init(data: Data? = nil) throws {
+        public init() {
+            key = CryptoPrimitives.SymmetricKey()
+        }
+        
+        public init(data: Data) throws {
             key = try CryptoPrimitives.SymmetricKey(data: data)
         }
     }
@@ -20,7 +24,7 @@ public enum TerminalCryptography {
                                        authenticating metadata: HealthEnclave_DocumentMetadata) throws
         -> (HealthEnclave_EncryptedDocumentKey, Data) {
             let metadata = try metadata.serializedData()
-            let documentKey = try CryptoPrimitives.SymmetricKey()
+            let documentKey = CryptoPrimitives.SymmetricKey()
             let encryptedDocument = try CryptoPrimitives.encryptSymmetric(document,
                                                                           using: documentKey,
                                                                           authenticating: metadata)

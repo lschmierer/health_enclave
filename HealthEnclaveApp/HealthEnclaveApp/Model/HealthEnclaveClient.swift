@@ -5,9 +5,10 @@
 //  Created by Lukas Schmierer on 04.04.20.
 //  Copyright © 2020 Lukas Schmierer. All rights reserved.
 //
-import Foundation
 import os
+import Foundation
 import Dispatch
+import Combine
 import SwiftProtobuf
 import GRPC
 import NIO
@@ -22,6 +23,11 @@ extension String: LocalizedError {
 }
 
 class HealthEnclaveClient {
+    private let _documentReceivedSubject = PassthroughSubject<PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>, Never>()
+    var documentReceivedSubject: AnyPublisher<PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>, Never> {
+        get { return _documentReceivedSubject.eraseToAnyPublisher() }
+    }
+    
     private let group: EventLoopGroup
     private var client: HealthEnclave_HealthEnclaveClient
     private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
@@ -82,15 +88,25 @@ class HealthEnclaveClient {
         })
         
         missingDocumentsCall = client.missingDocumentsForDevice(Google_Protobuf_Empty(), callOptions: callOptions()) { identifier in
-            _ = self.client.transferDocumentToDevice(identifier, callOptions: self.callOptions()) { documentChunked in
-                os_log(.info, "Received: %@", String(reflecting: documentChunked))
+            let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>()
+            self._documentReceivedSubject.send(documentStreamSubject)
+            
+            let transferDocumentToDeviceCall = self.client.transferDocumentToDevice(identifier, callOptions: self.callOptions()) { documentChunked in
+                documentStreamSubject.send(documentChunked)
+            }
+            _ = transferDocumentToDeviceCall.status.map { status in
+                if status == .ok {
+                    documentStreamSubject.send(completion: .finished)
+                } else {
+                    documentStreamSubject.send(completion: .failure(status))
+                }
             }
         }
     }
     
     private func callOptions() -> CallOptions {
         return CallOptions(customMetadata: [
-            "deviceIdentifier": try! deviceIdentifier.hexEncodedString
+            "deviceIdentifier": deviceIdentifier.hexEncodedString
         ])
     }
     

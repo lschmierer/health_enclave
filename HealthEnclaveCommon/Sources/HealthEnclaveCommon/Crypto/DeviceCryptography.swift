@@ -59,4 +59,29 @@ public enum DeviceCryptography {
             }
         }
     }
+    
+    public struct DeviceKey {
+        let key: CryptoPrimitives.SymmetricKey
+        
+        public init() {
+            key = CryptoPrimitives.SymmetricKey()
+        }
+        
+        public init(data: Data) throws {
+            key = try CryptoPrimitives.SymmetricKey(data: data)
+        }
+    }
+    
+    public static func encryptEncryptedDocumentKey(_ documentKey: HealthEnclave_EncryptedDocumentKey,
+                                                   using deviceKey: DeviceKey,
+                                                   authenticating metadata: HealthEnclave_DocumentMetadata) throws
+        -> HealthEnclave_TwofoldEncryptedDocumentKey {
+            let documentKey = try documentKey.serializedData()
+            let metadata = try metadata.serializedData()
+            return try HealthEnclave_TwofoldEncryptedDocumentKey.with {
+                $0.data = try CryptoPrimitives.encryptSymmetric(documentKey,
+                                                                using: deviceKey.key,
+                                                                authenticating: metadata)
+            }
+    }
 }

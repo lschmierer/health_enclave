@@ -21,14 +21,14 @@ public enum CryptoPrimitives {
             }
         }
         
-        init(data: Data? = nil) throws {
-            if let data = data {
-                key = Crypto.SymmetricKey(data: data)
-                if key.bitCount != 256 {
-                    throw CryptoError.invalidSize
-                }
-            } else {
-                key = Crypto.SymmetricKey(size: .bits256)
+        init() {
+            key = Crypto.SymmetricKey(size: .bits256)
+        }
+        
+        init(data: Data) throws {
+            key = Crypto.SymmetricKey(data: data)
+            if key.bitCount != 256 {
+                throw CryptoError.invalidSize
             }
         }
     }

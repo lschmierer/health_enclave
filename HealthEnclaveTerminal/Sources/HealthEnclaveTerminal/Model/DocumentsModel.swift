@@ -34,14 +34,14 @@ class DocumentsModel {
         
         // Store twofold encrypted key when received.
         twofoldEncryptedDocumentKeySubscription = server.twofoldEncryptedDocumentKeySubject
-            .receive(on: DispatchQueue.main)
+            .receive(on: DispatchQueue.global())
             .sink { twofoldEncryptedDocumentKeyWithId in
                 try! documentStore.addTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
                                                                   for: twofoldEncryptedDocumentKeyWithId.id)
         }
         // Transfer document to device.
         transferDocumentToDeviceRequestSubscription = server.transferDocumentToDeviceRequestSubject
-            .receive(on: DispatchQueue.main)
+            .receive(on: DispatchQueue.global())
             .sink() { (identifier, documentStreamSubject) in
                 try! documentStore.requestDocumentStream(for: identifier, on: documentStreamSubject)
         }

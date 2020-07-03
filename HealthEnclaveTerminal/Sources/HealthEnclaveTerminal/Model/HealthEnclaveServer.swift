@@ -251,7 +251,7 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         }
         
         do {
-            let deviceIdentifier = try DeviceCryptography.DeviceIdentifier(hexEncoded: deviceIdentifierHeaders[0])
+            let deviceIdentifier = DeviceCryptography.DeviceIdentifier(hexEncoded: deviceIdentifierHeaders[0])
             if deviceIdentifier != connectedDevice {
                 throw ServerError.clientInvalidIdentifier
             }

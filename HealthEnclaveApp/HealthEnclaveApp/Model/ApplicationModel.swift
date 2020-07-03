@@ -7,7 +7,7 @@
 //
 import os
 import NetworkExtension
-
+import Combine
 import NIOSSL
 
 import HealthEnclaveCommon
@@ -44,6 +44,8 @@ class ApplicationModel: ObservableObject {
     @Published public internal(set) var isConnected = false
     public internal(set) var isTransfering = true
     
+    private var documentModel: DocumentsModel?
+    private var documentStore: DocumentStore?
     private var client: HealthEnclaveClient?
     
     func connect(to jsonWifiConfiguration: String, onConnection connectionCallback: @escaping ConnectionCallback) {
@@ -97,7 +99,7 @@ class ApplicationModel: ObservableObject {
             }
             
             if let error = nsError  {
-                os_log(.error, "Error applying Hotspot Configuration: %@", error.debugDescription)
+                os_log(.error, "Error applying Hotspot Configuration: %@", error.localizedDescription)
                 connectionCallback(Result.failure(.wifi(error)))
             } else {
                 os_log(.info, "Hotspot Configuration added")
@@ -118,13 +120,19 @@ class ApplicationModel: ObservableObject {
                               port: Int,
                               certificate: NIOSSLCertificate,
                               onConnect connectionCallback: @escaping ConnectionCallback) {
-        // TODO: create or loade deviceIdentifier
+        // TODO: create or load deviceIdentifier
         let deviceIdentifier = DeviceCryptography.DeviceIdentifier()
         
+        documentStore = try! DocumentStore(for: deviceIdentifier)
         client = HealthEnclaveClient(ipAddress: ipAddress,
                                      port: port,
                                      certificate: certificate,
                                      deviceIdentifier: deviceIdentifier)
+        
+        // TODO: create or load DeviceKey
+        let deviceKey = DeviceCryptography.DeviceKey()
+        
+        documentModel = DocumentsModel(deviceKey: deviceKey, documentStore: documentStore!, client: client!)
         
         client!.establishConnection { result in
             connectionCallback(result)

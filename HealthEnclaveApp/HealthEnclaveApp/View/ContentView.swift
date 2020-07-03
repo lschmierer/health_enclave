@@ -12,7 +12,7 @@ import CarBode
 //import HealthEnclaveCommon
 
 struct ContentView: View {
-    @ObservedObject var model: ApplicationModel
+    @EnvironmentObject var model: ApplicationModel
     @State var lastQrData: String?
     @State var showAlert = false
     @State var alertTitle: String?
@@ -96,6 +96,6 @@ struct ContentView_Previews: PreviewProvider {
     }
     
     static var previews: some View {
-        ContentView(model: ApplicationModelMock())
+        ContentView().environmentObject(ApplicationModelMock())
     }
 }
