@@ -46,6 +46,8 @@ class DocumentsModel {
                                     k = twofoldEncryptedKey
                                 default: break
                                 }
+                                
+                                self.client.transferTwofoldEncryptedDocumentKeyToTerminal(k!, with: metadata.id)
 
                                 return Publishers.Sequence(sequence: [
                                     HealthEnclave_TwofoldEncyptedDocumentChunked.with {

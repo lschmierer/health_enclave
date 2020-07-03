@@ -104,6 +104,14 @@ class HealthEnclaveClient {
         }
     }
     
+    func transferTwofoldEncryptedDocumentKeyToTerminal(_ twofoldEncryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey,
+                                                       with identifier: HealthEnclave_DocumentIdentifier) {
+        _ = client.transferTwofoldEncryptedDocumentKeyToTerminal(HealthEnclave_TwofoldEncryptedDocumentKeyWithId.with({
+            $0.id = identifier
+            $0.key = twofoldEncryptedKey
+        }), callOptions: callOptions())
+    }
+    
     private func callOptions() -> CallOptions {
         return CallOptions(customMetadata: [
             "deviceIdentifier": deviceIdentifier.hexEncodedString
