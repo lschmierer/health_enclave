@@ -60,17 +60,7 @@ public enum DeviceCryptography {
         }
     }
     
-    public struct DeviceKey {
-        let key: CryptoPrimitives.SymmetricKey
-        
-        public init() {
-            key = CryptoPrimitives.SymmetricKey()
-        }
-        
-        public init(data: Data) throws {
-            key = try CryptoPrimitives.SymmetricKey(data: data)
-        }
-    }
+    public class DeviceKey: CryptoPrimitives.SymmetricKey {}
     
     public static func encryptEncryptedDocumentKey(_ documentKey: HealthEnclave_EncryptedDocumentKey,
                                                    using deviceKey: DeviceKey,
@@ -80,7 +70,7 @@ public enum DeviceCryptography {
             let metadata = try metadata.serializedData()
             return try HealthEnclave_TwofoldEncryptedDocumentKey.with {
                 $0.data = try CryptoPrimitives.encryptSymmetric(documentKey,
-                                                                using: deviceKey.key,
+                                                                using: deviceKey,
                                                                 authenticating: metadata)
             }
     }

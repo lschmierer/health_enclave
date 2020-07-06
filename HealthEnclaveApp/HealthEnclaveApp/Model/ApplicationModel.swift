@@ -9,6 +9,7 @@ import os
 import NetworkExtension
 import Combine
 import NIOSSL
+import BIP39
 
 import HealthEnclaveCommon
 
@@ -40,13 +41,42 @@ extension ApplicationError: LocalizedError {
 class ApplicationModel: ObservableObject {
     typealias ConnectionCallback = (_ result: Result<Void, ApplicationError>) -> Void
     
+    @Published public internal(set) var deviceKey: DeviceCryptography.DeviceKey?
+    @Published public internal(set) var mnemonicPhrase: [String]?
     @Published public internal(set) var isConnecting = false
     @Published public internal(set) var isConnected = false
-    public internal(set) var isTransfering = true
+    @Published public internal(set) var isTransfering = true
     
+    private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
     private var documentModel: DocumentsModel?
     private var documentStore: DocumentStore?
     private var client: HealthEnclaveClient?
+    
+    init() {
+        if let hexDeviceIdentifier = UserDefaults.standard.object(forKey: "deviceIdentifier") as? String {
+            deviceIdentifier = DeviceCryptography.DeviceIdentifier(hexEncoded: hexDeviceIdentifier)!
+        } else {
+            deviceIdentifier = DeviceCryptography.DeviceIdentifier()
+            UserDefaults.standard.set(deviceIdentifier.hexEncodedString, forKey: "deviceIdentifier")
+        }
+        if UserDefaults.standard.bool(forKey: "deviceKeySet") {
+            deviceKey = KeyChain.load()
+        }
+    }
+    
+    func generateDeviceKey() {
+        let mnemonic = Mnemonic()
+        self.mnemonicPhrase = mnemonic.phrase
+    }
+    
+    func setDeviceKey(from mnemonicPhrase: [String]) throws {
+        let mnemonic = try Mnemonic(phrase: mnemonicPhrase)
+        self.mnemonicPhrase = mnemonicPhrase
+        deviceKey = try! DeviceCryptography.DeviceKey(data: Data(mnemonic.seed[..<32]))
+        try! KeyChain.save(key: deviceKey!)
+        UserDefaults.standard.set(true, forKey: "deviceKeySet")
+    }
+    
     
     func connect(to jsonWifiConfiguration: String, onConnection connectionCallback: @escaping ConnectionCallback) {
         isConnecting = true

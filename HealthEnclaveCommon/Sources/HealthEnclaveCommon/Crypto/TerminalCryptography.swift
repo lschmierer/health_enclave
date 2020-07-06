@@ -7,17 +7,7 @@
 import Foundation
 
 public enum TerminalCryptography {
-    public struct SharedKey {
-        let key: CryptoPrimitives.SymmetricKey
-        
-        public init() {
-            key = CryptoPrimitives.SymmetricKey()
-        }
-        
-        public init(data: Data) throws {
-            key = try CryptoPrimitives.SymmetricKey(data: data)
-        }
-    }
+    public class SharedKey: CryptoPrimitives.SymmetricKey {}
     
     public static func encryptDocument(_ document: Data,
                                        using sharedKey: SharedKey,
@@ -30,7 +20,7 @@ public enum TerminalCryptography {
                                                                           authenticating: metadata)
             let encryptedDocumentKey = try HealthEnclave_EncryptedDocumentKey.with {
                 $0.data = try CryptoPrimitives.encryptSymmetric(documentKey.data,
-                                                                using: sharedKey.key,
+                                                                using: sharedKey,
                                                                 authenticating: metadata)
             }
             return (encryptedDocumentKey, encryptedDocument)

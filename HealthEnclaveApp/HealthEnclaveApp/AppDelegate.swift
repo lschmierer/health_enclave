@@ -14,6 +14,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     let model = ApplicationModel()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UserDefaults.standard.register(defaults: [
+            "deviceKeySet": false,
+        ])
+        
         requestNotificationPermissions()
         return true
     }

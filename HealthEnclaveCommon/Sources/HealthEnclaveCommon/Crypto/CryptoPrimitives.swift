@@ -8,27 +8,27 @@ import Foundation
 import Crypto
 
 public enum CryptoError: Error {
-    case invalidSize
+    case invalidSize(Int)
 }
 
 public enum CryptoPrimitives {
-    public struct SymmetricKey {
+    public class SymmetricKey {
         let key: Crypto.SymmetricKey
         
-        var data: Data {
+        public var data: Data {
             get {
                 return key.withUnsafeBytes { Data($0) }
             }
         }
         
-        init() {
+        public init() {
             key = Crypto.SymmetricKey(size: .bits256)
         }
         
-        init(data: Data) throws {
+        public init(data: Data) throws {
             key = Crypto.SymmetricKey(data: data)
             if key.bitCount != 256 {
-                throw CryptoError.invalidSize
+                throw CryptoError.invalidSize(key.bitCount)
             }
         }
     }

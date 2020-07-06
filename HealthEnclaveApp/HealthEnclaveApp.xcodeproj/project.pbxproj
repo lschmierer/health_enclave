@@ -7,11 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BD401E6E24B3BB46007A5565 /* KeyboardAdaptive.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD401E6D24B3BB45007A5565 /* KeyboardAdaptive.swift */; };
 		BD6E21E82425098100033B0A /* CarBode in Frameworks */ = {isa = PBXBuildFile; productRef = BD6E21E72425098100033B0A /* CarBode */; };
 		BD6E21EC24251AED00033B0A /* ApplicationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E21EB24251AED00033B0A /* ApplicationModel.swift */; };
 		BD6E21F324251F8F00033B0A /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E21F224251F8F00033B0A /* ActivityIndicator.swift */; };
 		BD7182BF24278B34007013CE /* HealthEnclaveCommon in Frameworks */ = {isa = PBXBuildFile; productRef = BD7182BE24278B34007013CE /* HealthEnclaveCommon */; };
 		BD7182C224278DF7007013CE /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD7182C124278DF7007013CE /* NetworkExtension.framework */; };
+		BDCDBA8624B31232005ADB16 /* KeyChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCDBA8524B31232005ADB16 /* KeyChain.swift */; };
+		BDCDBA8824B31750005ADB16 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCDBA8724B31750005ADB16 /* ConnectView.swift */; };
+		BDCDBA8A24B335C2005ADB16 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCDBA8924B335C2005ADB16 /* SetupView.swift */; };
+		BDCDBA8D24B34E1A005ADB16 /* BIP39 in Frameworks */ = {isa = PBXBuildFile; productRef = BDCDBA8C24B34E1A005ADB16 /* BIP39 */; };
 		BDD4F29424AF6AED00969FAD /* DocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD4F29324AF6AED00969FAD /* DocumentStore.swift */; };
 		BDD4F29624AF8BD500969FAD /* DocumentsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD4F29524AF8BD500969FAD /* DocumentsModel.swift */; };
 		BDD7538624360CA10025E098 /* NetworkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD7538524360CA10025E098 /* NetworkUtils.swift */; };
@@ -67,6 +72,7 @@
 /* Begin PBXFileReference section */
 		BD0B9CA92424E670000969B2 /* HealthEnclaveCommon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = HealthEnclaveCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD0B9CAB2424E676000969B2 /* Sodium.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sodium.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD401E6D24B3BB45007A5565 /* KeyboardAdaptive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardAdaptive.swift; sourceTree = "<group>"; };
 		BD6E21EB24251AED00033B0A /* ApplicationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationModel.swift; sourceTree = "<group>"; };
 		BD6E21F224251F8F00033B0A /* ActivityIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicator.swift; sourceTree = "<group>"; };
 		BD6E21F42425246500033B0A /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Package.swift; path = ../HealthEnclaveCommon/Package.swift; sourceTree = "<group>"; };
@@ -77,6 +83,9 @@
 		BD6E22092425266000033B0A /* HealthEnclaveCommon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = HealthEnclaveCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD7182C024278DF7007013CE /* HealthEnclaveApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HealthEnclaveApp.entitlements; sourceTree = "<group>"; };
 		BD7182C124278DF7007013CE /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		BDCDBA8524B31232005ADB16 /* KeyChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyChain.swift; sourceTree = "<group>"; };
+		BDCDBA8724B31750005ADB16 /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
+		BDCDBA8924B335C2005ADB16 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		BDD4F29324AF6AED00969FAD /* DocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentStore.swift; sourceTree = "<group>"; };
 		BDD4F29524AF8BD500969FAD /* DocumentsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsModel.swift; sourceTree = "<group>"; };
 		BDD7538524360CA10025E098 /* NetworkUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkUtils.swift; sourceTree = "<group>"; };
@@ -102,6 +111,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BDCDBA8D24B34E1A005ADB16 /* BIP39 in Frameworks */,
 				BD7182BF24278B34007013CE /* HealthEnclaveCommon in Frameworks */,
 				BD7182C224278DF7007013CE /* NetworkExtension.framework in Frameworks */,
 				BD6E21E82425098100033B0A /* CarBode in Frameworks */,
@@ -128,10 +138,11 @@
 		BD6E21E924251ACD00033B0A /* View */ = {
 			isa = PBXGroup;
 			children = (
-				BDEE72F9240D782B00C73EB8 /* AppDelegate.swift */,
-				BDEE72FB240D782B00C73EB8 /* SceneDelegate.swift */,
 				BDEE72FD240D782B00C73EB8 /* ContentView.swift */,
 				BD6E21F224251F8F00033B0A /* ActivityIndicator.swift */,
+				BDCDBA8724B31750005ADB16 /* ConnectView.swift */,
+				BDCDBA8924B335C2005ADB16 /* SetupView.swift */,
+				BD401E6D24B3BB45007A5565 /* KeyboardAdaptive.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -144,6 +155,7 @@
 				BDD756582437E9AF0025E098 /* HealthEnclaveClient.swift */,
 				BDD4F29324AF6AED00969FAD /* DocumentStore.swift */,
 				BDD4F29524AF8BD500969FAD /* DocumentsModel.swift */,
+				BDCDBA8524B31232005ADB16 /* KeyChain.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -183,6 +195,8 @@
 			isa = PBXGroup;
 			children = (
 				BD7182C024278DF7007013CE /* HealthEnclaveApp.entitlements */,
+				BDEE72F9240D782B00C73EB8 /* AppDelegate.swift */,
+				BDEE72FB240D782B00C73EB8 /* SceneDelegate.swift */,
 				BD6E21EA24251AD700033B0A /* Model */,
 				BD6E21E924251ACD00033B0A /* View */,
 				BDEE72FF240D783000C73EB8 /* Assets.xcassets */,
@@ -254,6 +268,7 @@
 			packageProductDependencies = (
 				BD6E21E72425098100033B0A /* CarBode */,
 				BD7182BE24278B34007013CE /* HealthEnclaveCommon */,
+				BDCDBA8C24B34E1A005ADB16 /* BIP39 */,
 			);
 			productName = HealthEnclaveApp;
 			productReference = BDEE72F6240D782B00C73EB8 /* HealthEnclaveApp.app */;
@@ -329,6 +344,7 @@
 			mainGroup = BDEE72ED240D782B00C73EB8;
 			packageReferences = (
 				BD6E21E62425098100033B0A /* XCRemoteSwiftPackageReference "CarBode-Barcode-Scanner-For-SwiftUI" */,
+				BDCDBA8B24B34E1A005ADB16 /* XCRemoteSwiftPackageReference "BIP39" */,
 			);
 			productRefGroup = BDEE72F7240D782B00C73EB8 /* Products */;
 			projectDirPath = "";
@@ -406,11 +422,15 @@
 				BDEE72FA240D782B00C73EB8 /* AppDelegate.swift in Sources */,
 				BD6E21F324251F8F00033B0A /* ActivityIndicator.swift in Sources */,
 				BDD4F29424AF6AED00969FAD /* DocumentStore.swift in Sources */,
+				BDCDBA8824B31750005ADB16 /* ConnectView.swift in Sources */,
 				BDEE72FC240D782B00C73EB8 /* SceneDelegate.swift in Sources */,
 				BDD4F29624AF8BD500969FAD /* DocumentsModel.swift in Sources */,
 				BDD756592437E9AF0025E098 /* HealthEnclaveClient.swift in Sources */,
+				BD401E6E24B3BB46007A5565 /* KeyboardAdaptive.swift in Sources */,
 				BD6E21EC24251AED00033B0A /* ApplicationModel.swift in Sources */,
+				BDCDBA8624B31232005ADB16 /* KeyChain.swift in Sources */,
 				BDD7538624360CA10025E098 /* NetworkUtils.swift in Sources */,
+				BDCDBA8A24B335C2005ADB16 /* SetupView.swift in Sources */,
 				BDEE72FE240D782B00C73EB8 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -582,7 +602,7 @@
 				DEVELOPMENT_TEAM = JL52ULGBD3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = HealthEnclaveApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -604,7 +624,7 @@
 				DEVELOPMENT_TEAM = JL52ULGBD3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = HealthEnclaveApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -750,6 +770,14 @@
 				minimumVersion = 1.4.1;
 			};
 		};
+		BDCDBA8B24B34E1A005ADB16 /* XCRemoteSwiftPackageReference "BIP39" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pengpengliu/BIP39";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -761,6 +789,11 @@
 		BD7182BE24278B34007013CE /* HealthEnclaveCommon */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HealthEnclaveCommon;
+		};
+		BDCDBA8C24B34E1A005ADB16 /* BIP39 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BDCDBA8B24B34E1A005ADB16 /* XCRemoteSwiftPackageReference "BIP39" */;
+			productName = BIP39;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
