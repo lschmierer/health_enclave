@@ -20,34 +20,43 @@ import HealthEnclaveCommon
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.DeviceDocumentsModel")
 
 class DocumentsModel {
-    private let sharedKey: TerminalCryptography.SharedKey
+    
+    private var sharedKey: TerminalCryptography.SharedKey?
     private let documentStore: DocumentStore
     private let server: HealthEnclaveServer
     
+    private var _documentsMetadata = Set<HealthEnclave_DocumentMetadata>()
+    var documentsMetadata: [HealthEnclave_DocumentMetadata] {
+        get { return Array(_documentsMetadata) }
+    }
+    
+    private let _documentAddedSubject = PassthroughSubject<HealthEnclave_DocumentMetadata, Never>()
+    var documentAddedSubject: AnyPublisher<HealthEnclave_DocumentMetadata, Never> {
+        get { return _documentAddedSubject.eraseToAnyPublisher() }
+    }
+    
+    private var deviceAdvertisedDocumentsSubscription: Cancellable?
     private var twofoldEncryptedDocumentKeySubscription: Cancellable?
     private var transferDocumentToDeviceRequestSubscription: Cancellable?
     
-    init(sharedKey: TerminalCryptography.SharedKey, documentStore: DocumentStore, server: HealthEnclaveServer) {
-        self.sharedKey = sharedKey
+    init(documentStore: DocumentStore, server: HealthEnclaveServer) {
         self.documentStore = documentStore
         self.server = server
         
-        // Store twofold encrypted key when received.
-        twofoldEncryptedDocumentKeySubscription = server.twofoldEncryptedDocumentKeySubject
-            .receive(on: DispatchQueue.global())
-            .sink { twofoldEncryptedDocumentKeyWithId in
-                try! documentStore.addTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
-                                                                  for: twofoldEncryptedDocumentKeyWithId.id)
-        }
-        // Transfer document to device.
-        transferDocumentToDeviceRequestSubscription = server.transferDocumentToDeviceRequestSubject
-            .receive(on: DispatchQueue.global())
-            .sink() { (identifier, documentStreamSubject) in
-                try! documentStore.requestDocumentStream(for: identifier, on: documentStreamSubject)
-        }
+        setupDeviceAdvertisedDocumentsSubscription()
+        setupTwofoldEncryptedDocumentKeySubscription()
+        setupTransferDocumentToDeviceRequestSubscription()
+    }
+    
+    func setSharedKey(_ sharedKey: TerminalCryptography.SharedKey) {
+        self.sharedKey = sharedKey
     }
     
     func addDocumentToDevice(file: URL) throws {
+        guard let sharedKey = sharedKey else {
+            throw ApplicationError.missingSharedKey
+        }
+        
         let documentIdentifier = HealthEnclave_DocumentIdentifier.with {
             $0.uuid = UUID().uuidString
         }
@@ -68,5 +77,34 @@ class DocumentsModel {
         try documentStore.addNewEncryptedDocument(encryptedDocument, with: documentMetadata, encryptedWith: encryptedDocumentKey)
         
         server.missingDocumentsForDeviceSubject.send(documentIdentifier)
+        _documentAddedSubject.send(documentMetadata)
+    }
+    
+    private func setupDeviceAdvertisedDocumentsSubscription() {
+        deviceAdvertisedDocumentsSubscription = server.deviceAdvertisedDocumentsSubject
+            .receive(on: DispatchQueue.global())
+            .sink() { documentMetadata in
+                self._documentsMetadata.insert(documentMetadata)
+                self._documentAddedSubject.send(documentMetadata)
+        }
+    }
+    
+    private func setupTwofoldEncryptedDocumentKeySubscription() {
+        // Store twofold encrypted key when received.
+        twofoldEncryptedDocumentKeySubscription = server.twofoldEncryptedDocumentKeySubject
+            .receive(on: DispatchQueue.global())
+            .sink { twofoldEncryptedDocumentKeyWithId in
+                try! self.documentStore.addTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
+                                                                       for: twofoldEncryptedDocumentKeyWithId.id)
+        }
+    }
+    
+    private func setupTransferDocumentToDeviceRequestSubscription() {
+        // Transfer document to device.
+        transferDocumentToDeviceRequestSubscription = server.transferDocumentToDeviceRequestSubject
+            .receive(on: DispatchQueue.global())
+            .sink() { (identifier, documentStreamSubject) in
+                try! self.documentStore.requestDocumentStream(for: identifier, on: documentStreamSubject)
+        }
     }
 }

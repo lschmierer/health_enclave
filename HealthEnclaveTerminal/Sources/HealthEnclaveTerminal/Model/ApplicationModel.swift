@@ -23,7 +23,9 @@ enum ApplicationError: Error {
     case invalidPrivateKey(String)
     case invalidNetwork(String)
     case invalidHotspot(Error)
+    case notConnected
     case invalidSharedKey
+    case missingSharedKey
 }
 
 class ApplicationModel {
@@ -44,6 +46,7 @@ class ApplicationModel {
     
     private let wifiHotspotController: WifiHotspotControllerProtocol?
     
+    private var documentsModel: DocumentsModel?
     private var server: HealthEnclaveServer?
     private var serverDeviceConnectedSubscription: Cancellable?
     private var serverDeviceConnectionLostSubscription: Cancellable?
@@ -129,7 +132,14 @@ class ApplicationModel {
                                      port: Int(wifiConfiguration.port),
                                      certificateChain: certificateChain,
                                      privateKey: privateKey)
-        serverDeviceConnectedSubscription = server?.deviceConnectedSubject.subscribe(_deviceConnectedSubject)
+        serverDeviceConnectedSubscription = server?.deviceConnectedSubject
+            .receive(on: DispatchQueue.global())
+            .sink { [weak self] in
+                guard let self = self else { return }
+                self.documentsModel = DocumentsModel(documentStore: try! DocumentStore(for: self.server!.connectedDevice!),
+                                                      server: self.server!)
+                self._deviceConnectedSubject.send()
+        }
         serverDeviceConnectionLostSubscription = server?.deviceConnectionLostSubject
             .receive(on: DispatchQueue.global())
             .sink() { [weak self] in
@@ -147,11 +157,12 @@ class ApplicationModel {
     }
     
     func setSharedKey(data sharedKey: Data) throws {
+        guard let documentsModel = documentsModel else {
+            throw ApplicationError.notConnected
+        }
         do {
-            _sharedKeySetSubject.send(
-                DocumentsModel(sharedKey: try TerminalCryptography.SharedKey(data: sharedKey),
-                               documentStore: try! DocumentStore(for: server!.connectedDevice!),
-                               server: server!))
+            documentsModel.setSharedKey(try TerminalCryptography.SharedKey(data: sharedKey))
+            _sharedKeySetSubject.send(documentsModel)
         } catch {
             throw ApplicationError.invalidSharedKey
         }

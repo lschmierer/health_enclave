@@ -58,10 +58,15 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         get { return _deviceConnectionLostSubject.eraseToAnyPublisher() }
     }
     
+    private let _deviceAdvertisedDocumentsSubject = PassthroughSubject<HealthEnclave_DocumentMetadata, Never>();
+    var deviceAdvertisedDocumentsSubject: AnyPublisher<HealthEnclave_DocumentMetadata, Never> {
+        get { return _deviceAdvertisedDocumentsSubject.eraseToAnyPublisher() }
+    }
+    
     let missingDocumentsForDeviceSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
     private var missingDocumentsForDeviceSubscription: Cancellable?
     
-    let _transferDocumentToDeviceRequestSubject =
+    private let _transferDocumentToDeviceRequestSubject =
         PassthroughSubject<(HealthEnclave_DocumentIdentifier, PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>), Never>();
     var transferDocumentToDeviceRequestSubject:
         AnyPublisher<(HealthEnclave_DocumentIdentifier, PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>), Never> {
@@ -146,8 +151,13 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     
     func advertiseDocumentsToTerminal(context: UnaryResponseCallContext<Google_Protobuf_Empty>)
         -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentMetadata>) -> Void> {
-            return checkClient(context).flatMapThrowing {
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+
+            return checkClient(context).map {
+                return { event in
+                    if case let .message(metadata) = event {
+                        self._deviceAdvertisedDocumentsSubject.send(metadata)
+                    }
+                }
             }
     }
     

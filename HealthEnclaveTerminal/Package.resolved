@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/grpc/grpc-swift.git",
         "state": {
           "branch": null,
-          "revision": "399cfe1cfec19d8dc37dcd945a389e6eaae3ea43",
-          "version": "1.0.0-alpha.14"
+          "revision": "4e91a4043a35205d78dc543734cb84826bcf3016",
+          "version": "1.0.0-alpha.15"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/broadwaylamb/OpenCombine.git",
         "state": {
           "branch": null,
-          "revision": "59183ce0a5aa24b71f60d883440aa27c53d4eb16",
-          "version": "0.9.0"
+          "revision": "f3d068d6f2090d2913c9e1b75cc36cef962a530c",
+          "version": "0.10.0"
         }
       },
       {
@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "74d7b91ceebc85daf387ebb206003f78813f71aa",
-          "version": "1.2.0"
+          "revision": "57c6bd04256ba47590ee2285e208f731210c5c10",
+          "version": "1.3.0"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "120acb15c39aa3217e9888e515de160378fbcc1e",
-          "version": "2.18.0"
+          "revision": "8a865bd15e69526cbdfcfd7c47698eb20b2ba951",
+          "version": "2.19.0"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "c5d10f4165128c3d0cc0e3c0f0a8ef55947a73a6",
-          "version": "1.12.2"
+          "revision": "c76a9a5085bfc22882f8cff88189662af30806e8",
+          "version": "1.12.3"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "f0b118d9af6c4e78bc4f3f4fbb464020172b0bf4",
-          "version": "2.7.5"
+          "revision": "d381bc53edd9de88a75480a2b969bfc26d61ee76",
+          "version": "2.8.0"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-transport-services.git",
         "state": {
           "branch": null,
-          "revision": "2ac8fde712c1b1a147ecb7065824a40d2c09d0cb",
-          "version": "1.6.0"
+          "revision": "f9a95e9bbb4ed70dd6e1e25d65c46e37187f7730",
+          "version": "1.7.0"
         }
       },
       {
@@ -78,8 +78,8 @@
         "repositoryURL": "https://github.com/apple/swift-protobuf.git",
         "state": {
           "branch": null,
-          "revision": "7f36441e3372665b1b414f8ac93b5905cc42a405",
-          "version": "1.9.0"
+          "revision": "05cb9347bb095d9a28234a593d45cb9fcdc9d196",
+          "version": "1.10.0"
         }
       },
       {
@@ -87,7 +87,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftAtk.git",
         "state": {
           "branch": "master",
-          "revision": "25d67f57fd0a64d18ad73f4fa3c38e7b3f2c55df",
+          "revision": "e55fe15641d28a7a4f1c2647e24c8c5940f22d29",
           "version": null
         }
       },
@@ -96,7 +96,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftCairo.git",
         "state": {
           "branch": "master",
-          "revision": "e70560a8a1f1eb1ba1b486ead60e7f7640696ecc",
+          "revision": "314cfed639f630308b6b3da1fc6f21e390150024",
           "version": null
         }
       },
@@ -105,7 +105,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdk.git",
         "state": {
           "branch": "master",
-          "revision": "8e987bcdf439e370456578dc42ae6fba53f1e4b4",
+          "revision": "e3d2a3f409b40fc5543328e20e12d39179930893",
           "version": null
         }
       },
@@ -114,7 +114,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdkPixbuf.git",
         "state": {
           "branch": "master",
-          "revision": "15759ce084e62240a48f61e02183c3aeb87b92d5",
+          "revision": "f8a105734c97f650eaf5e535e651cc1a1eebaf7c",
           "version": null
         }
       },
@@ -123,7 +123,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGIO.git",
         "state": {
           "branch": "master",
-          "revision": "a5608a0a57775ae3efa1779b9fba3c2937d8329e",
+          "revision": "073dd45499f6c3672f770bc0311a8d55f89f9312",
           "version": null
         }
       },
@@ -132,7 +132,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGLib.git",
         "state": {
           "branch": "master",
-          "revision": "83d66aa78a2a1cac98cbe33d700957b0bf70d66b",
+          "revision": "35f90c56bf08328ed6b6587d0acf28730f37c93e",
           "version": null
         }
       },
@@ -141,7 +141,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGModule.git",
         "state": {
           "branch": "master",
-          "revision": "dea6e3f1a7c1da3d951effe1bd7187f58064a893",
+          "revision": "966a63af29932365c89e2f36ca38a595688c4a45",
           "version": null
         }
       },
@@ -150,7 +150,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGObject.git",
         "state": {
           "branch": "master",
-          "revision": "8a8bd9daee003ae2a29e96200b7ebd28c939da05",
+          "revision": "18080831bf3431a299e7dcd1d5d9d091fb853e88",
           "version": null
         }
       },
@@ -159,7 +159,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGtk.git",
         "state": {
           "branch": "master",
-          "revision": "d1f80fb579b12e578e830cb16219ca3cc6959881",
+          "revision": "1ef1b46a02020cb8d981de99375172e268183c2d",
           "version": null
         }
       },
@@ -168,7 +168,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftPango.git",
         "state": {
           "branch": "master",
-          "revision": "3ea7cde1386eb28eb70eb06e7dd26a281e3d7ba9",
+          "revision": "b890cfa5f3142754aa1b79cb01375114c3f900b7",
           "version": null
         }
       },
@@ -177,7 +177,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftPangoCairo.git",
         "state": {
           "branch": "master",
-          "revision": "ca9f936d7a3efe8e1b76996bd08ca3333ff95d73",
+          "revision": "d353020725260840685f2f26d06e08c84bfd79ae",
           "version": null
         }
       }

@@ -5,16 +5,21 @@
 //  Created by Lukas Schmierer on 06.07.20.
 //  Copyright © 2020 Lukas Schmierer. All rights reserved.
 //
+import os
+import Combine
 import SwiftUI
+
 import CarBode
 
 struct ConnectView: View {
-    @EnvironmentObject var model: ApplicationModel
-    @State var lastQrData: String?
+    @EnvironmentObject private var model: ApplicationModel
+    @State private var lastQrData: String?
     
-    @State var showAlert = false
-    @State var alertTitle: String?
-    @State var alertMessage: String?
+    @State private var showAlert = false
+    @State private var alertTitle: String?
+    @State private var alertMessage: String?
+    
+    @State private var connectSubscription: Cancellable?
     
     var body: some View {
         ZStack {
@@ -47,15 +52,17 @@ struct ConnectView: View {
                             self.lastQrData = nil
                         }
                         
-                        self.model.connect(to: data) { result in
-                            if case let .failure(error) = result {
+                        self.connectSubscription = self.model.connect(to: data)
+                            .receive(on: DispatchQueue.main)
+                            .sink(receiveCompletion: { completion in
+                            if case let .failure(error) = completion {
                                 self.showAlert = true
                                 self.alertTitle = "Connection error"
                                 self.alertMessage = error.localizedDescription
-                            } else {
-                                self.lastQrData = nil
                             }
-                        }
+                        }, receiveValue: { client in
+                            self.lastQrData = nil
+                        })
                 }
                 VStack(spacing: 40) {
                     if(!model.isConnecting) {

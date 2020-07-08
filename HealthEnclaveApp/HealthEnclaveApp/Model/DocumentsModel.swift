@@ -23,11 +23,23 @@ class DocumentsModel {
         self.documentStore = documentStore
         self.client = client
         
+        os_log(.info, "init Documents Model")
+        
+        advertiseDocumentsToTerminal()
+        setupDocumentReceivedSubscription()
+    }
+    
+    private func advertiseDocumentsToTerminal() {
+        client.advertiseDocumentsToTerminal(documentStore.allDocumentsMetadata())
+    }
+    
+    private func setupDocumentReceivedSubscription() {
         documentReceivedSubscription = client.documentReceivedSubject
             .receive(on: DispatchQueue.global())
             .sink(receiveValue: { documentStreamSubject in
                 var metadata: HealthEnclave_DocumentMetadata?
                 
+                // Encrypt onefold encrypted keys
                 let twofoldEncryptedDocumentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> = documentStreamSubject
                     .flatMap { chunk -> AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> in
                         switch chunk.content {
@@ -40,15 +52,15 @@ class DocumentsModel {
                                 switch key.content {
                                 case let .onefoldEncryptedKey(onefoldEncryptedKey):
                                     k = try! DeviceCryptography.encryptEncryptedDocumentKey(onefoldEncryptedKey,
-                                                                                                         using: self.deviceKey,
-                                                                                                         authenticating: metadata)
+                                                                                            using: self.deviceKey,
+                                                                                            authenticating: metadata)
                                 case let .twofoldEncryptedKey(twofoldEncryptedKey):
                                     k = twofoldEncryptedKey
                                 default: break
                                 }
                                 
                                 self.client.transferTwofoldEncryptedDocumentKeyToTerminal(k!, with: metadata.id)
-
+                                
                                 return Publishers.Sequence(sequence: [
                                     HealthEnclave_TwofoldEncyptedDocumentChunked.with {
                                         $0.metadata = metadata
@@ -67,8 +79,8 @@ class DocumentsModel {
                         default: break
                         }
                         return Empty().eraseToAnyPublisher()
-                }
-                .eraseToAnyPublisher()
+                    }
+                    .eraseToAnyPublisher()
                 
                 self.documentStore.storeDocument(from: twofoldEncryptedDocumentStreamSubject)
             })

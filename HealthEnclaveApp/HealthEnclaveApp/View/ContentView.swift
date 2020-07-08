@@ -12,7 +12,7 @@ import CarBode
 //import HealthEnclaveCommon
 
 struct ContentView: View {
-    @EnvironmentObject var model: ApplicationModel
+    @EnvironmentObject private var model: ApplicationModel
     
     var body: some View {
         NavigationView {

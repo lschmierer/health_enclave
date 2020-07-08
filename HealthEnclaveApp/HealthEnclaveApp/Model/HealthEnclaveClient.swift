@@ -7,7 +7,6 @@
 //
 import os
 import Foundation
-import Dispatch
 import Combine
 import SwiftProtobuf
 import GRPC
@@ -34,10 +33,20 @@ class HealthEnclaveClient {
     private var keepAliveCall: BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>?
     private var missingDocumentsCall: ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclaveCommon.HealthEnclave_DocumentIdentifier>?
     
-    init(ipAddress: String,
-         port: Int,
-         certificate: NIOSSLCertificate,
-         deviceIdentifier: DeviceCryptography.DeviceIdentifier) {
+    class func create(ipAddress: String,
+                      port: Int,
+                      certificate: NIOSSLCertificate,
+                      deviceIdentifier: DeviceCryptography.DeviceIdentifier) -> AnyPublisher<HealthEnclaveClient, ApplicationError> {
+        let client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate, deviceIdentifier: deviceIdentifier)
+        return client.establishConnection()
+            .map { client }
+            .eraseToAnyPublisher()
+    }
+    
+    private init(ipAddress: String,
+                 port: Int,
+                 certificate: NIOSSLCertificate,
+                 deviceIdentifier: DeviceCryptography.DeviceIdentifier) {
         group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         
         let configuration = ClientConnection.Configuration(
@@ -55,30 +64,31 @@ class HealthEnclaveClient {
         self.deviceIdentifier = deviceIdentifier
     }
     
-    func establishConnection(onConnect connectionCallback: @escaping ApplicationModel.ConnectionCallback) {
-        keepAliveCall = client.keepAlive(callOptions: callOptions()) { _ in
-            DispatchQueue.main.async {
-                connectionCallback(.success(()))
+    private func establishConnection() -> AnyPublisher<Void, ApplicationError>  {
+        let subject = PassthroughSubject<Void, ApplicationError>()
+        var sentToSubject = false
+        
+        self.keepAliveCall = self.client.keepAlive(callOptions: self.callOptions()) { _ in
+            if !sentToSubject {
+                sentToSubject = true
+                subject.send(Void())
             }
         }
         
-        _ = keepAliveCall?.status.always { result in
+        _ = self.keepAliveCall?.status.always { result in
             guard case let .success(status) = result, status.code == .ok else {
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let status):
-                        let error = ApplicationError.connection(status.message)
-                        connectionCallback(.failure(error))
-                    case .failure(let error):
-                        connectionCallback(.failure(.connection(error)))
-                    }
+                switch result {
+                case .success(let status):
+                    let error = ApplicationError.connection(status.message)
+                    subject.send(completion: .failure(error))
+                case .failure(let error):
+                    subject.send(completion: .failure(.connection(error)))
                 }
                 return
             }
         }
         
-        
-        group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { task in
+        self.group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { task in
             guard let keepAliveCall = self.keepAliveCall else {
                 let cancelPromise: EventLoopPromise<Void> = self.group.next().makePromise()
                 task.cancel(promise: cancelPromise)
@@ -87,7 +97,7 @@ class HealthEnclaveClient {
             return keepAliveCall.sendMessage(Google_Protobuf_Empty());
         })
         
-        missingDocumentsCall = client.missingDocumentsForDevice(Google_Protobuf_Empty(), callOptions: callOptions()) { identifier in
+        self.missingDocumentsCall = self.client.missingDocumentsForDevice(Google_Protobuf_Empty(), callOptions: self.callOptions()) { identifier in
             let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>()
             self._documentReceivedSubject.send(documentStreamSubject)
             
@@ -102,6 +112,15 @@ class HealthEnclaveClient {
                 }
             }
         }
+        
+        return subject.eraseToAnyPublisher()
+    }
+    
+    func advertiseDocumentsToTerminal(_ documentsMetadata: [HealthEnclave_DocumentMetadata]) {
+        let streamingCall = client.advertiseDocumentsToTerminal(callOptions: callOptions())
+        os_log(.info, "Documents: %@", String(reflecting: documentsMetadata))
+        _ = streamingCall.sendMessages(documentsMetadata)
+        _ = streamingCall.sendEnd()
     }
     
     func transferTwofoldEncryptedDocumentKeyToTerminal(_ twofoldEncryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey,

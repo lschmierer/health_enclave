@@ -14,13 +14,13 @@ enum SetupType {
 }
 
 struct SetupView: View {
-    @EnvironmentObject var model: ApplicationModel
-    @State var setupType: SetupType?
-    @State var recoverySeed: String = ""
+    @EnvironmentObject private var model: ApplicationModel
+    @State private var setupType: SetupType?
+    @State private var recoverySeed: String = ""
     
-    @State var showAlert = false
-    @State var alertTitle: String?
-    @State var alertMessage: String?
+    @State private var showAlert = false
+    @State private var alertTitle: String?
+    @State private var alertMessage: String?
     
     var body: some View {
         switch setupType {

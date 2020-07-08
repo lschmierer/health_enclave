@@ -39,8 +39,6 @@ extension ApplicationError: LocalizedError {
 }
 
 class ApplicationModel: ObservableObject {
-    typealias ConnectionCallback = (_ result: Result<Void, ApplicationError>) -> Void
-    
     @Published public internal(set) var deviceKey: DeviceCryptography.DeviceKey?
     @Published public internal(set) var mnemonicPhrase: [String]?
     @Published public internal(set) var isConnecting = false
@@ -48,7 +46,7 @@ class ApplicationModel: ObservableObject {
     @Published public internal(set) var isTransfering = true
     
     private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
-    private var documentModel: DocumentsModel?
+    private var documentsModel: DocumentsModel?
     private var documentStore: DocumentStore?
     private var client: HealthEnclaveClient?
     
@@ -78,68 +76,69 @@ class ApplicationModel: ObservableObject {
     }
     
     
-    func connect(to jsonWifiConfiguration: String, onConnection connectionCallback: @escaping ConnectionCallback) {
-        isConnecting = true
+    func connect(to jsonWifiConfiguration: String) -> AnyPublisher<Void, ApplicationError> {
+        self.isConnecting = true
         guard
             let wifiConfiguration = try? HealthEnclave_WifiConfiguration(jsonString: jsonWifiConfiguration),
             let certificate = try? NIOSSLCertificate(bytes: [UInt8](wifiConfiguration.derCert), format: .der)
-            else {
-                os_log(.info, "Invalid WifiConfiguration: %@", jsonWifiConfiguration)
-                connectionCallback(.failure(.wifiInvalidConfiguration))
-                self.isConnecting = false
-                self.isConnected = false
-                return
+        else {
+            os_log(.info, "Invalid WifiConfiguration: %@", jsonWifiConfiguration)
+            self.isConnecting = false
+            self.isConnected = false
+            return Fail(error: ApplicationError.wifiInvalidConfiguration)
+                .eraseToAnyPublisher()
         }
         
         os_log(.info, "Connecting to Wifi: %@", String(reflecting: wifiConfiguration))
-        connectWifi(ssid: wifiConfiguration.ssid, passphrase: wifiConfiguration.password) { result in
-            if case .failure = result {
+        return self.connectWifi(ssid: wifiConfiguration.ssid, passphrase: wifiConfiguration.password)
+            .flatMap { () -> AnyPublisher<Void, ApplicationError> in
+                os_log(.info, "Creating client")
+                return self.createClient(ipAddress: wifiConfiguration.ipAddress,
+                                         port: Int(wifiConfiguration.port),
+                                         certificate: certificate)
+            }
+            .receive(on: DispatchQueue.main)
+            .map {
+                self.isConnected = true
+                self.isConnecting = false
+            }
+            .mapError { error in
                 self.isConnected = false
                 self.isConnecting = false
-                connectionCallback(result)
-            } else {
-                self.createClient(ipAddress: wifiConfiguration.ipAddress, port: Int(wifiConfiguration.port), certificate: certificate) { result in
-                    if case .failure = result {
-                        self.isConnected = false
-                        self.isConnecting = false
-                        connectionCallback(result)
-                    } else {
-                        self.isConnected = true
-                        self.isConnecting = false
-                        connectionCallback(.success(()))
-                    }
-                }
+                return error
             }
-        }
+            .eraseToAnyPublisher()
     }
     
-    private func connectWifi(ssid: String, passphrase: String, onConnection connectionCallback: @escaping ConnectionCallback) {
-        let hotspotConfiguration =  NEHotspotConfiguration(ssid: ssid, passphrase: passphrase, isWEP: false)
-        hotspotConfiguration.joinOnce = true
-        
-        NEHotspotConfigurationManager.shared.apply(hotspotConfiguration) { rawError in
-            var nsError = rawError as NSError?
+    private func connectWifi(ssid: String, passphrase: String) -> Future<Void, ApplicationError> {
+        return Future() { promise in
+            let hotspotConfiguration =  NEHotspotConfiguration(ssid: ssid, passphrase: passphrase, isWEP: false)
+            hotspotConfiguration.joinOnce = true
             
-            // Throw away non-error errors
-            if let error = nsError, error.domain == NEHotspotConfigurationErrorDomain {
-                if(error.code == NEHotspotConfigurationError.alreadyAssociated.rawValue) {
-                    os_log(.info, "Wifi already connected");
-                    nsError = nil
+            NEHotspotConfigurationManager.shared.apply(hotspotConfiguration) { rawError in
+                var nsError = rawError as NSError?
+                
+                // Throw away non-error errors
+                if let error = nsError, error.domain == NEHotspotConfigurationErrorDomain {
+                    if(error.code == NEHotspotConfigurationError.alreadyAssociated.rawValue) {
+                        os_log(.info, "Wifi already connected");
+                        nsError = nil
+                    }
                 }
-            }
-            
-            if let error = nsError  {
-                os_log(.error, "Error applying Hotspot Configuration: %@", error.localizedDescription)
-                connectionCallback(Result.failure(.wifi(error)))
-            } else {
-                os_log(.info, "Hotspot Configuration added")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    if let connectedSsid = getWifiSsid(), connectedSsid == ssid {
-                        os_log(.info, "Wifi connected");
-                        connectionCallback(.success(()))
-                    } else {
-                        os_log(.error, "Connected to wrong SSID")
-                        connectionCallback(.failure(.wifi(nil)))
+                
+                if let error = nsError  {
+                    os_log(.error, "Error applying Hotspot Configuration: %@", error.localizedDescription)
+                    promise(.failure(.wifi(error)))
+                } else {
+                    os_log(.info, "Hotspot Configuration added")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        if let connectedSsid = getWifiSsid(), connectedSsid == ssid {
+                            os_log(.info, "Wifi connected");
+                            promise(.success(()))
+                        } else {
+                            os_log(.error, "Connected to wrong SSID")
+                            promise(.failure(.wifi(nil)))
+                        }
                     }
                 }
             }
@@ -148,28 +147,19 @@ class ApplicationModel: ObservableObject {
     
     private func createClient(ipAddress: String,
                               port: Int,
-                              certificate: NIOSSLCertificate,
-                              onConnect connectionCallback: @escaping ConnectionCallback) {
-        // TODO: create or load deviceIdentifier
-        let deviceIdentifier = DeviceCryptography.DeviceIdentifier()
-        
-        documentStore = try! DocumentStore(for: deviceIdentifier)
-        client = HealthEnclaveClient(ipAddress: ipAddress,
-                                     port: port,
-                                     certificate: certificate,
-                                     deviceIdentifier: deviceIdentifier)
-        
-        // TODO: create or load DeviceKey
-        let deviceKey = DeviceCryptography.DeviceKey()
-        
-        documentModel = DocumentsModel(deviceKey: deviceKey, documentStore: documentStore!, client: client!)
-        
-        client!.establishConnection { result in
-            connectionCallback(result)
-            if case .failure = result {
-                self.client = nil
+                              certificate: NIOSSLCertificate) -> AnyPublisher<Void, ApplicationError> {
+        documentStore = try! DocumentStore(for: self.deviceIdentifier)
+        return HealthEnclaveClient.create(ipAddress: ipAddress,
+                                          port: port,
+                                          certificate: certificate,
+                                          deviceIdentifier: self.deviceIdentifier)
+            .map { client in
+                self.client = client
+                self.documentsModel = DocumentsModel(deviceKey: self.deviceKey!,
+                                                    documentStore: self.documentStore!,
+                                                    client: client)
             }
-        }
+            .eraseToAnyPublisher()
     }
     
     func disconnect() {
