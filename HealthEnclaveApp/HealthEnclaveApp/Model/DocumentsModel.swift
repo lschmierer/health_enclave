@@ -23,8 +23,6 @@ class DocumentsModel {
         self.documentStore = documentStore
         self.client = client
         
-        os_log(.info, "init Documents Model")
-        
         advertiseDocumentsToTerminal()
         setupDocumentReceivedSubscription()
     }
@@ -36,7 +34,8 @@ class DocumentsModel {
     private func setupDocumentReceivedSubscription() {
         documentReceivedSubscription = client.documentReceivedSubject
             .receive(on: DispatchQueue.global())
-            .sink(receiveValue: { documentStreamSubject in
+            .sink(receiveValue: { [weak self] documentStreamSubject in
+                guard let self = self else { return }
                 var metadata: HealthEnclave_DocumentMetadata?
                 
                 // Encrypt onefold encrypted keys

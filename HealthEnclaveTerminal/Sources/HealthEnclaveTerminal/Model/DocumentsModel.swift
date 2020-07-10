@@ -83,7 +83,8 @@ class DocumentsModel {
     private func setupDeviceAdvertisedDocumentsSubscription() {
         deviceAdvertisedDocumentsSubscription = server.deviceAdvertisedDocumentsSubject
             .receive(on: DispatchQueue.global())
-            .sink() { documentMetadata in
+            .sink() { [weak self] documentMetadata in
+                guard let self = self else { return }
                 self._documentsMetadata.insert(documentMetadata)
                 self._documentAddedSubject.send(documentMetadata)
         }
@@ -93,7 +94,8 @@ class DocumentsModel {
         // Store twofold encrypted key when received.
         twofoldEncryptedDocumentKeySubscription = server.twofoldEncryptedDocumentKeySubject
             .receive(on: DispatchQueue.global())
-            .sink { twofoldEncryptedDocumentKeyWithId in
+            .sink { [weak self] twofoldEncryptedDocumentKeyWithId in
+            guard let self = self else { return }
                 try! self.documentStore.addTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
                                                                        for: twofoldEncryptedDocumentKeyWithId.id)
         }
@@ -103,7 +105,8 @@ class DocumentsModel {
         // Transfer document to device.
         transferDocumentToDeviceRequestSubscription = server.transferDocumentToDeviceRequestSubject
             .receive(on: DispatchQueue.global())
-            .sink() { (identifier, documentStreamSubject) in
+            .sink() { [weak self] (identifier, documentStreamSubject) in
+            guard let self = self else { return }
                 try! self.documentStore.requestDocumentStream(for: identifier, on: documentStreamSubject)
         }
     }

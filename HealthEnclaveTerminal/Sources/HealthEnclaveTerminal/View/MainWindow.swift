@@ -65,11 +65,11 @@ class MainWindow: ApplicationWindow {
         
         serverSetupCompleteSubscription = model.setupCompletedSubject
             .receive(on: DispatchQueue.main)
-            .sink { (result) in
+            .sink { [weak self] (result) in
                 switch result {
                 case let .success(wifiConfiguration):
                     logger.debug("Showing ConnectPage...")
-                    self.page = ConnectPage(wifiConfiguration: wifiConfiguration)
+                    self?.page = ConnectPage(wifiConfiguration: wifiConfiguration)
                 case let .failure(error):
                     logger.error("Can not create server: \(error)")
                     application.quit()
@@ -78,16 +78,16 @@ class MainWindow: ApplicationWindow {
         
         serverDeviceConnectedSubscription = model.deviceConnectedSubject
             .receive(on: DispatchQueue.main)
-            .sink {
+            .sink { [weak self] in
                 logger.debug("Showing SharedKeyPage...")
-                self.page = SharedKeyPage()
+                self?.page = SharedKeyPage()
         }
         
         serverSharedKeySetSubscription = model.sharedKeySetSubject
             .receive(on: DispatchQueue.main)
-            .sink { documentsModel in
+            .sink { [weak self] documentsModel in
                 logger.debug("Showing DocumentsPage...")
-                self.page = DocumentsPage(model: documentsModel)
+                self?.page = DocumentsPage(model: documentsModel)
         }
         
         model.setupServer()

@@ -121,7 +121,8 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
                 
                 _deviceConnectedSubject.send()
                 
-                return context.eventLoop.makeSucceededFuture( { event in
+                return context.eventLoop.makeSucceededFuture( { [weak self] event in
+                    guard let self = self else { return }
                     switch event {
                     case .message(let msg):
                         self.lastKeepAlive = Date()
@@ -151,9 +152,9 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     
     func advertiseDocumentsToTerminal(context: UnaryResponseCallContext<Google_Protobuf_Empty>)
         -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentMetadata>) -> Void> {
-
-            return checkClient(context).map {
+            return checkClient(context).map { [weak self] in
                 return { event in
+                    guard let self = self else { return }
                     if case let .message(metadata) = event {
                         self._deviceAdvertisedDocumentsSubject.send(metadata)
                     }
@@ -165,10 +166,10 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     func missingDocumentsForDevice(request: Google_Protobuf_Empty,
                                    context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
         -> EventLoopFuture<GRPCStatus> {
-            return checkClient(context).flatMap {
+            return checkClient(context).flatMap { [weak self] in
                 let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
                 
-                self.missingDocumentsForDeviceSubscription = self.missingDocumentsForDeviceSubject
+                self?.missingDocumentsForDeviceSubscription = self?.missingDocumentsForDeviceSubject
                     .sink(
                         receiveCompletion: {_ in
                             promise.succeed(.ok)
@@ -207,7 +208,7 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier,
                                   context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>)
         -> EventLoopFuture<GRPCStatus> {
-            return checkClient(context).flatMap {
+            return checkClient(context).flatMap { [weak self] in
                 let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
                 
                 let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>()
@@ -219,7 +220,7 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
                     _ = context.sendResponse(chunk)
                 }
                 
-                self._transferDocumentToDeviceRequestSubject
+                self?._transferDocumentToDeviceRequestSubject
                     .send((request, documentStreamSubject))
                 
                 return promise.futureResult.always { _ in
@@ -247,8 +248,8 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     func transferTwofoldEncryptedDocumentKeyToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId,
                                                        context: StatusOnlyCallContext)
         -> EventLoopFuture<Google_Protobuf_Empty> {
-            return checkClient(context).map {
-                self._twofoldEncryptedDocumentKeySubject.send(request)
+            return checkClient(context).map { [weak self] in
+                self?._twofoldEncryptedDocumentKeySubject.send(request)
                 return Google_Protobuf_Empty()
             }
     }

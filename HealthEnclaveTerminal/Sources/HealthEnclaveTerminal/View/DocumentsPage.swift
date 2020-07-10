@@ -44,8 +44,8 @@ class DocumentsPage: Box {
         
         documentAddedSubscription = model.documentAddedSubject
             .receive(on: DispatchQueue.main)
-            .sink { documentMetadata in
-                self.addDocumentToList(documentMetadata)
+            .sink { [weak self] documentMetadata in
+                self?.addDocumentToList(documentMetadata)
         }
         
         let treeView = TreeView(model: store)

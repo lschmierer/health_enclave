@@ -17,6 +17,7 @@ enum ApplicationError: Error {
     case wifiInvalidConfiguration
     case wifi(Error?)
     case connection(Error?)
+    case unknown
 }
 
 extension ApplicationError: LocalizedError {
@@ -34,6 +35,8 @@ extension ApplicationError: LocalizedError {
                 return errorDescription.prefix(1).capitalized + errorDescription.dropFirst()
             }
             return "Connection Error"
+        case .unknown:
+            return "Unknown"
         }
     }
 }
@@ -90,27 +93,28 @@ class ApplicationModel: ObservableObject {
         }
         
         os_log(.info, "Connecting to Wifi: %@", String(reflecting: wifiConfiguration))
-        return self.connectWifi(ssid: wifiConfiguration.ssid, passphrase: wifiConfiguration.password)
-            .flatMap { () -> AnyPublisher<Void, ApplicationError> in
+        return Self.connectWifi(ssid: wifiConfiguration.ssid, passphrase: wifiConfiguration.password)
+            .flatMap { [weak self] () -> AnyPublisher<Void, ApplicationError> in
+                guard let self = self else { return Fail(error: .unknown).eraseToAnyPublisher() }
                 os_log(.info, "Creating client")
                 return self.createClient(ipAddress: wifiConfiguration.ipAddress,
                                          port: Int(wifiConfiguration.port),
                                          certificate: certificate)
             }
             .receive(on: DispatchQueue.main)
-            .map {
-                self.isConnected = true
-                self.isConnecting = false
+            .map { [weak self] in
+                self?.isConnected = true
+                self?.isConnecting = false
             }
-            .mapError { error in
-                self.isConnected = false
-                self.isConnecting = false
+            .mapError { [weak self] error in
+                self?.isConnected = false
+                self?.isConnecting = false
                 return error
             }
             .eraseToAnyPublisher()
     }
     
-    private func connectWifi(ssid: String, passphrase: String) -> Future<Void, ApplicationError> {
+    private static func connectWifi(ssid: String, passphrase: String) -> Future<Void, ApplicationError> {
         return Future() { promise in
             let hotspotConfiguration =  NEHotspotConfiguration(ssid: ssid, passphrase: passphrase, isWEP: false)
             hotspotConfiguration.joinOnce = true
@@ -153,7 +157,8 @@ class ApplicationModel: ObservableObject {
                                           port: port,
                                           certificate: certificate,
                                           deviceIdentifier: self.deviceIdentifier)
-            .map { client in
+            .map { [weak self] client in
+                guard let self = self else { return }
                 self.client = client
                 self.documentsModel = DocumentsModel(deviceKey: self.deviceKey!,
                                                     documentStore: self.documentStore!,

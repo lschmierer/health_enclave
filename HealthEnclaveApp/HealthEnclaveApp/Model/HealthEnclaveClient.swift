@@ -31,6 +31,7 @@ class HealthEnclaveClient {
     private var client: HealthEnclave_HealthEnclaveClient
     private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
     private var keepAliveCall: BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>?
+    private var keepAliveTask: RepeatedTask?
     private var missingDocumentsCall: ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclaveCommon.HealthEnclave_DocumentIdentifier>?
     
     class func create(ipAddress: String,
@@ -75,7 +76,8 @@ class HealthEnclaveClient {
             }
         }
         
-        _ = self.keepAliveCall?.status.always { result in
+        _ = self.keepAliveCall?.status.always { [weak subject] result in
+            guard let subject = subject else { return }
             guard case let .success(status) = result, status.code == .ok else {
                 switch result {
                 case .success(let status):
@@ -88,17 +90,18 @@ class HealthEnclaveClient {
             }
         }
         
-        self.group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { task in
-            guard let keepAliveCall = self.keepAliveCall else {
-                let cancelPromise: EventLoopPromise<Void> = self.group.next().makePromise()
+        let cancelPromise: EventLoopPromise<Void> = self.group.next().makePromise()
+        self.keepAliveTask = self.group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { [weak self, cancelPromise] task in
+            guard let keepAliveCall = self?.keepAliveCall else {
                 task.cancel(promise: cancelPromise)
                 return cancelPromise.futureResult
             }
             return keepAliveCall.sendMessage(Google_Protobuf_Empty());
         })
         
-        self.missingDocumentsCall = self.client.missingDocumentsForDevice(Google_Protobuf_Empty(), callOptions: self.callOptions()) { identifier in
+        self.missingDocumentsCall = self.client.missingDocumentsForDevice(Google_Protobuf_Empty(), callOptions: self.callOptions()) { [weak self] identifier in
             let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>()
+            guard let self = self else { return }
             self._documentReceivedSubject.send(documentStreamSubject)
             
             let transferDocumentToDeviceCall = self.client.transferDocumentToDevice(identifier, callOptions: self.callOptions()) { documentChunked in
@@ -138,6 +141,7 @@ class HealthEnclaveClient {
     }
     
     func disconnect() {
+        keepAliveTask?.cancel()
         try! keepAliveCall?.sendEnd().wait()
         try! client.channel.close().wait()
         try! group.syncShutdownGracefully()

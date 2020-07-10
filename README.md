@@ -29,6 +29,11 @@ Run `./xcodegen.sh` from within the `HealthEnclaveTerminal` directory to generat
 ### Prerequisites
 On Mac install Xcode from App Store and Homebrew from https://brew.sh
 
+Make sure that the Xcode command line tools are set correctly
+```
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/
+```
+
 #### Swift
 Make sure Swift is installed and the executable is in your path.
 You can download Swift from https://swift.org/download/.
@@ -51,7 +56,7 @@ on Linux.
 #### Mac
 Using Homebrew
 ```
-brew install gtk+3 gobject-introspection pkg-config qrencode
+brew install gtk+3 glib glib-networking gobject-introspection pkg-config qrencode
 ```
 
 #### Ubuntu

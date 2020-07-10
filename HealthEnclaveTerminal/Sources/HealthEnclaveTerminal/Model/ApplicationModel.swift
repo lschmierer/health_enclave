@@ -78,11 +78,14 @@ class ApplicationModel {
         
         if let wifiHotspotController = self.wifiHotspotController, UserDefaults.standard.bool(forKey: "hotspot") {
             logger.info("Creating Hotspot...")
-            let _ = wifiHotspotController.create().sink(receiveCompletion: { completion in
+            let _ = wifiHotspotController.create()
+                .sink(receiveCompletion: { [weak self] completion in
+                    guard let self = self else { return }
                 if case let .failure(error) = completion {
                     self._setupCompletedSubject.send(.failure(ApplicationError.invalidHotspot(error)))
                 }
-            }) { hotsporConfiguration in
+            }) { [weak self] hotsporConfiguration in
+                guard let self = self else { return }
                 let wifiConfiguration = HealthEnclave_WifiConfiguration.with {
                     $0.ssid = hotsporConfiguration.ssid
                     $0.password = hotsporConfiguration.password

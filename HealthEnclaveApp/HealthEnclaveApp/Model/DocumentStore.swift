@@ -67,7 +67,8 @@ class DocumentStore {
         var documentStreamSubscription: AnyCancellable?
         documentStreamSubscription = documentStreamSubject
             .receive(on: DispatchQueue.global())
-            .sink(receiveCompletion: { completion in
+            .sink(receiveCompletion: { [weak self] completion in
+                guard let self = self else { return }
                 self.documentStreamSubscriptions.remove(documentStreamSubscription!)
                 
                 switch completion {

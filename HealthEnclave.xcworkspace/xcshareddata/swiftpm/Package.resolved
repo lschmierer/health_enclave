@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/grpc/grpc-swift.git",
         "state": {
           "branch": null,
-          "revision": "4e91a4043a35205d78dc543734cb84826bcf3016",
-          "version": "1.0.0-alpha.15"
+          "revision": "e461a8487b5bd0d8eef0ebf56f7d41401d9ff5ae",
+          "version": "1.0.0-alpha.16"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "74d7b91ceebc85daf387ebb206003f78813f71aa",
-          "version": "1.2.0"
+          "revision": "57c6bd04256ba47590ee2285e208f731210c5c10",
+          "version": "1.3.0"
         }
       },
       {
@@ -87,8 +87,8 @@
         "repositoryURL": "https://github.com/apple/swift-protobuf.git",
         "state": {
           "branch": null,
-          "revision": "05cb9347bb095d9a28234a593d45cb9fcdc9d196",
-          "version": "1.10.0"
+          "revision": "4d5fc241fbb6edf00ffe54a6ffe02eff8064a17c",
+          "version": "1.10.1"
         }
       }
     ]
