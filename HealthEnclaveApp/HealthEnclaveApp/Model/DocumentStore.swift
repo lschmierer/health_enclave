@@ -55,10 +55,6 @@ class DocumentStore {
         try readMetadata()
     }
     
-    func allDocumentsMetadata() -> [HealthEnclave_DocumentMetadata] {
-        return Array(documentsMetadata.values)
-    }
-    
     func storeDocument(from documentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error>) {
         var metadata: HealthEnclave_DocumentMetadata?
         var key: HealthEnclave_TwofoldEncryptedDocumentKey?
@@ -86,7 +82,7 @@ class DocumentStore {
                         return
                     }
                     
-                    os_log(.info, "Received DOcument with id: %@", metadata.id.uuid)
+                    os_log(.info, "Received Document with id: %@", metadata.id.uuid)
                     
                     self.documentsMetadata[metadata.id] = metadata
                     try! self.storeMetadata(metadata, with: metadata.id)
@@ -108,6 +104,10 @@ class DocumentStore {
                 }
             })
         documentStreamSubscriptions.insert(documentStreamSubscription!)
+    }
+    
+    func allDocumentsMetadata() -> [HealthEnclave_DocumentMetadata] {
+        return Array(documentsMetadata.values)
     }
     
     private func readMetadata() throws {

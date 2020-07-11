@@ -25,4 +25,16 @@ public enum TerminalCryptography {
             }
             return (encryptedDocumentKey, encryptedDocument)
     }
+    
+    public static func decryptDocument(_ encryptedDocument: Data,
+                                       with documentKey: HealthEnclave_EncryptedDocumentKey,
+                                       using sharedKey: SharedKey,
+                                       authenticating metadata: HealthEnclave_DocumentMetadata) throws
+        -> Data {
+            let metadata = try metadata.serializedData()
+            let documentKey = try CryptoPrimitives.SymmetricKey(data: try CryptoPrimitives.decryptSymmetric(documentKey.data,
+                                                                                                            using: sharedKey,
+                                                                                                            authenticating: metadata))
+            return try CryptoPrimitives.decryptSymmetric(encryptedDocument, using: documentKey, authenticating: metadata)
+    }
 }

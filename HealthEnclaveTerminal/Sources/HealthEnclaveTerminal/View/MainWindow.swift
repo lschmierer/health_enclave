@@ -86,8 +86,9 @@ class MainWindow: ApplicationWindow {
         serverSharedKeySetSubscription = model.sharedKeySetSubject
             .receive(on: DispatchQueue.main)
             .sink { [weak self] documentsModel in
+                guard let self = self else { return }
                 logger.debug("Showing DocumentsPage...")
-                self?.page = DocumentsPage(model: documentsModel)
+                self.page = DocumentsPage(model: documentsModel, openUrl: self.openUrl)
         }
         
         model.setupServer()
@@ -113,5 +114,9 @@ class MainWindow: ApplicationWindow {
         } catch {
             logger.error("Error setting shared key: \(error)")
         }
+    }
+    
+    func openUrl(_ url: URL) {
+        _ = try! showURIOnWindow(uri: url.absoluteString, timestamp: UInt32(Gdk.CURRENT_TIME))
     }
 }

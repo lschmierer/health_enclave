@@ -19,6 +19,15 @@ if !FileManager.default.fileExists(atPath: applicationSupportDirectory.path) {
                                              withIntermediateDirectories: false,
                                              attributes: nil)
 }
+let cacheDirectory = try! FileManager.default.url(for: .cachesDirectory,
+                                                  in: .userDomainMask,
+                                                  appropriateFor: nil,
+                                                  create: true).appendingPathComponent("HealthEnclaveTerminal", isDirectory: true)
+if !FileManager.default.fileExists(atPath: cacheDirectory.path) {
+    try! FileManager.default.createDirectory(at: cacheDirectory,
+                                             withIntermediateDirectories: false,
+                                             attributes: nil)
+}
 
 logger.info("Setting up UserDefaults...")
 UserDefaults.standard.register(defaults: [
@@ -49,6 +58,14 @@ let status = Application.run(id: "de.lschmierer.HealthEnclaveTerminal") { app in
     logger.debug("Showing MainWindow...")
     MainWindow(application: app, model: appModel).show()
 }
+
+logger.debug("Exiting Gtk Application...")
+
+logger.debug("Clearing cache...")
+if FileManager.default.fileExists(atPath: cacheDirectory.path) {
+    try!FileManager.default.removeItem(at: cacheDirectory)
+}
+logger.debug("Cache cleared!")
 
 guard let status = status else {
     fatalError("Could not create Gtk Application")

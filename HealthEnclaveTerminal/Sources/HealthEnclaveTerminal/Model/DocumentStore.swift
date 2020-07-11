@@ -78,10 +78,51 @@ class DocumentStore {
         try storeMetadata(metadata, with: metadata.id)
     }
     
+    func addTwofoldEncryptedDocument(_ document: Data,
+                                 with metadata: HealthEnclave_DocumentMetadata,
+                                 encryptedWith encryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey) throws {
+        encryptedDocuments[metadata.id] = document
+        documentsMetadata[metadata.id] = metadata
+        twofoldEncryptedDocumentKeys[metadata.id] = encryptedKey
+        try storeDocument(document, with: metadata.id)
+        try storeMetadata(metadata, with: metadata.id)
+        try storeTwofoldEncryptedKey(encryptedKey, with: metadata.id)
+    }
+    
+    func addEncryptedDocumentKey(_ key: HealthEnclave_EncryptedDocumentKey,
+                                 for identifier: HealthEnclave_DocumentIdentifier) throws {
+        encryptedDocumentKeys[identifier] = key
+    }
+    
     func addTwofoldEncryptedDocumentKey(_ key: HealthEnclave_TwofoldEncryptedDocumentKey,
                                         for identifier: HealthEnclave_DocumentIdentifier) throws {
         twofoldEncryptedDocumentKeys[identifier] = key
         try storeTwofoldEncryptedKey(key, with: identifier)
+    }
+    
+    func allDocumentsMetadata() -> [HealthEnclave_DocumentMetadata] {
+        return Array(documentsMetadata.values)
+    }
+    
+    func encryptedDocument(with identifier: HealthEnclave_DocumentIdentifier) -> (HealthEnclave_DocumentMetadata, HealthEnclave_OneOrTwofoldEncyptedDocumentKey, Data)? {
+        guard let metadata = documentsMetadata[identifier],
+            let data = try? readDocument(for: identifier) else {
+                return nil
+        }
+        if let onefoldEncryptedKey = encryptedDocumentKeys[identifier] {
+            return (metadata,
+                    HealthEnclave_OneOrTwofoldEncyptedDocumentKey.with {
+                        $0.onefoldEncryptedKey = onefoldEncryptedKey
+                },
+                    data)
+        } else if let twofoldEncryptedKey = try? readTwofoldEncryptedDocumentKey(for: identifier) {
+            return (metadata,
+                    HealthEnclave_OneOrTwofoldEncyptedDocumentKey.with {
+                        $0.twofoldEncryptedKey = twofoldEncryptedKey},
+                    data)
+        } else {
+            return nil
+        }
     }
     
     func requestDocumentStream(for identifier: HealthEnclave_DocumentIdentifier,
@@ -115,7 +156,7 @@ class DocumentStore {
         
         let fullChunks = Int(data.count / chunkSize)
         let totalChunks = fullChunks + (data.count % chunkSize != 0 ? 1 : 0)
-
+        
         for chunkCounter in 0..<totalChunks
         {
             var chunk: Data
@@ -126,7 +167,7 @@ class DocumentStore {
                 diff = data.count - chunkBase
             }
             chunk = data.subdata(in: chunkBase..<(chunkBase + diff))
-
+            
             documentStreamSubject.send(HealthEnclave_OneOrTwofoldEncyptedDocumentChunked.with {
                 $0.chunk = chunk
             })

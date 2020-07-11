@@ -90,9 +90,9 @@ class HealthEnclaveClient {
             }
         }
         
-        let cancelPromise: EventLoopPromise<Void> = self.group.next().makePromise()
-        self.keepAliveTask = self.group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { [weak self, cancelPromise] task in
-            guard let keepAliveCall = self?.keepAliveCall else {
+        self.keepAliveTask = self.group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { task in
+            guard let keepAliveCall = self.keepAliveCall else {
+                let cancelPromise: EventLoopPromise<Void> = self.group.next().makePromise()
                 task.cancel(promise: cancelPromise)
                 return cancelPromise.futureResult
             }
@@ -121,7 +121,6 @@ class HealthEnclaveClient {
     
     func advertiseDocumentsToTerminal(_ documentsMetadata: [HealthEnclave_DocumentMetadata]) {
         let streamingCall = client.advertiseDocumentsToTerminal(callOptions: callOptions())
-        os_log(.info, "Documents: %@", String(reflecting: documentsMetadata))
         _ = streamingCall.sendMessages(documentsMetadata)
         _ = streamingCall.sendEnd()
     }

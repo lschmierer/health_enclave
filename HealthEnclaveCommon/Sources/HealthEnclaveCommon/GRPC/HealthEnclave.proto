@@ -51,7 +51,7 @@ service HealthEnclave {
     rpc TransferDocumentToDevice(DocumentIdentifier) returns (stream OneOrTwofoldEncyptedDocumentChunked);
     
     // Transfer a document from device to terminal.
-    rpc TransferDocumentToTerminal(TwofoldEncyptedDocumentChunked) returns (google.protobuf.Empty);
+    rpc TransferDocumentToTerminal(stream TwofoldEncyptedDocumentChunked) returns (google.protobuf.Empty);
     
     // Transfer a onefold encrypted key to the terminal.
     rpc TransferEncryptedDocumentKeyToTerminal(EncryptedDocumentKeyWithId) returns (google.protobuf.Empty);

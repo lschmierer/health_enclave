@@ -14,8 +14,8 @@ class QRCode: DrawingArea {
     override init() {
         super.init()
         
-        onDraw { [weak self] _, cr in
-            self?.drawQRCode(cr)
+        onDraw { _, cr in
+            self.drawQRCode(cr)
             return false
         }
     }

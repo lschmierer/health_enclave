@@ -28,20 +28,268 @@ import SwiftProtobuf
 
 
 /// Usage: instantiate HealthEnclave_HealthEnclaveClient, then call methods of this protocol to make API calls.
-public protocol HealthEnclave_HealthEnclaveClientProtocol {
-  func keepAlive(callOptions: CallOptions?, handler: @escaping (SwiftProtobuf.Google_Protobuf_Empty) -> Void) -> BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-  func advertiseDocumentsToTerminal(callOptions: CallOptions?) -> ClientStreamingCall<HealthEnclave_DocumentMetadata, SwiftProtobuf.Google_Protobuf_Empty>
-  func missingDocumentsForDevice(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
-  func missingDocumentsForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
-  func missingEncryptedDocumentKeysForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
-  func missingTwofoldEncryptedDocumentKeysForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions?, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
-  func transferDocumentToDevice(_ request: HealthEnclave_DocumentIdentifier, callOptions: CallOptions?, handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunked) -> Void) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>
-  func transferDocumentToTerminal(_ request: HealthEnclave_TwofoldEncyptedDocumentChunked, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_TwofoldEncyptedDocumentChunked, SwiftProtobuf.Google_Protobuf_Empty>
-  func transferEncryptedDocumentKeyToTerminal(_ request: HealthEnclave_EncryptedDocumentKeyWithId, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_EncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty>
-  func transferTwofoldEncryptedDocumentKeyToTerminal(_ request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId, callOptions: CallOptions?) -> UnaryCall<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty>
+public protocol HealthEnclave_HealthEnclaveClientProtocol: GRPCClient {
+  func keepAlive(
+    callOptions: CallOptions?,
+    handler: @escaping (SwiftProtobuf.Google_Protobuf_Empty) -> Void
+  ) -> BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
+
+  func advertiseDocumentsToTerminal(
+    callOptions: CallOptions?
+  ) -> ClientStreamingCall<HealthEnclave_DocumentMetadata, SwiftProtobuf.Google_Protobuf_Empty>
+
+  func missingDocumentsForDevice(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
+
+  func missingDocumentsForTerminal(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
+
+  func missingEncryptedDocumentKeysForTerminal(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
+
+  func missingTwofoldEncryptedDocumentKeysForTerminal(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
+
+  func transferDocumentToDevice(
+    _ request: HealthEnclave_DocumentIdentifier,
+    callOptions: CallOptions?,
+    handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunked) -> Void
+  ) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>
+
+  func transferDocumentToTerminal(
+    callOptions: CallOptions?
+  ) -> ClientStreamingCall<HealthEnclave_TwofoldEncyptedDocumentChunked, SwiftProtobuf.Google_Protobuf_Empty>
+
+  func transferEncryptedDocumentKeyToTerminal(
+    _ request: HealthEnclave_EncryptedDocumentKeyWithId,
+    callOptions: CallOptions?
+  ) -> UnaryCall<HealthEnclave_EncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty>
+
+  func transferTwofoldEncryptedDocumentKeyToTerminal(
+    _ request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId,
+    callOptions: CallOptions?
+  ) -> UnaryCall<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty>
+
 }
 
-public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_HealthEnclaveClientProtocol {
+extension HealthEnclave_HealthEnclaveClientProtocol {
+
+  /// Async stream for monitoring connection status.
+  ///
+  /// The client should send a message at least every 2 seconds.
+  /// The server should respond immediateley.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
+  public func keepAlive(
+    callOptions: CallOptions? = nil,
+    handler: @escaping (SwiftProtobuf.Google_Protobuf_Empty) -> Void
+  ) -> BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
+    return self.makeBidirectionalStreamingCall(
+      path: "/health_enclave.HealthEnclave/KeepAlive",
+      callOptions: callOptions ?? self.defaultCallOptions,
+      handler: handler
+    )
+  }
+
+  /// The client streams a list of documents locally present on the device.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response.
+  public func advertiseDocumentsToTerminal(
+    callOptions: CallOptions? = nil
+  ) -> ClientStreamingCall<HealthEnclave_DocumentMetadata, SwiftProtobuf.Google_Protobuf_Empty> {
+    return self.makeClientStreamingCall(
+      path: "/health_enclave.HealthEnclave/AdvertiseDocumentsToTerminal",
+      callOptions: callOptions ?? self.defaultCallOptions
+    )
+  }
+
+  /// The server streams a list of documents that are not present on the device.
+  ///
+  /// The list may contain documents that are in fact present on the device, but
+  /// not advertised to the server, yet.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to MissingDocumentsForDevice.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func missingDocumentsForDevice(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
+    return self.makeServerStreamingCall(
+      path: "/health_enclave.HealthEnclave/MissingDocumentsForDevice",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      handler: handler
+    )
+  }
+
+  /// The server streams a list of documents that are not present on the terminal.
+  ///
+  /// The client shall treat received identifiers as LIFO queue.
+  /// Documents requested last shall be transmitted first.
+  /// This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to MissingDocumentsForTerminal.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func missingDocumentsForTerminal(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
+    return self.makeServerStreamingCall(
+      path: "/health_enclave.HealthEnclave/MissingDocumentsForTerminal",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      handler: handler
+    )
+  }
+
+  /// Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
+  /// Thes keys give immediate access to documents.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to MissingEncryptedDocumentKeysForTerminal.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func missingEncryptedDocumentKeysForTerminal(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
+    return self.makeServerStreamingCall(
+      path: "/health_enclave.HealthEnclave/MissingEncryptedDocumentKeysForTerminal",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      handler: handler
+    )
+  }
+
+  /// Stream a list of documents the server wants to obtain the corresponding twofold encrypted keys for.
+  /// Thes keys do not give access to documents and are meant for backup purpose.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to MissingTwofoldEncryptedDocumentKeysForTerminal.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func missingTwofoldEncryptedDocumentKeysForTerminal(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
+    return self.makeServerStreamingCall(
+      path: "/health_enclave.HealthEnclave/MissingTwofoldEncryptedDocumentKeysForTerminal",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      handler: handler
+    )
+  }
+
+  /// Transfer the document for the fiven uuid to the client.
+  ///
+  /// The key is either onefold (new documents) or twofold (restore backup) encrypted.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to TransferDocumentToDevice.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func transferDocumentToDevice(
+    _ request: HealthEnclave_DocumentIdentifier,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunked) -> Void
+  ) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunked> {
+    return self.makeServerStreamingCall(
+      path: "/health_enclave.HealthEnclave/TransferDocumentToDevice",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      handler: handler
+    )
+  }
+
+  /// Transfer a document from device to terminal.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response.
+  public func transferDocumentToTerminal(
+    callOptions: CallOptions? = nil
+  ) -> ClientStreamingCall<HealthEnclave_TwofoldEncyptedDocumentChunked, SwiftProtobuf.Google_Protobuf_Empty> {
+    return self.makeClientStreamingCall(
+      path: "/health_enclave.HealthEnclave/TransferDocumentToTerminal",
+      callOptions: callOptions ?? self.defaultCallOptions
+    )
+  }
+
+  /// Transfer a onefold encrypted key to the terminal.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to TransferEncryptedDocumentKeyToTerminal.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func transferEncryptedDocumentKeyToTerminal(
+    _ request: HealthEnclave_EncryptedDocumentKeyWithId,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<HealthEnclave_EncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty> {
+    return self.makeUnaryCall(
+      path: "/health_enclave.HealthEnclave/TransferEncryptedDocumentKeyToTerminal",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions
+    )
+  }
+
+  /// Transfer a twofold encrypted key to the terminal.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to TransferTwofoldEncryptedDocumentKeyToTerminal.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func transferTwofoldEncryptedDocumentKeyToTerminal(
+    _ request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty> {
+    return self.makeUnaryCall(
+      path: "/health_enclave.HealthEnclave/TransferTwofoldEncryptedDocumentKeyToTerminal",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions
+    )
+  }
+}
+
+public final class HealthEnclave_HealthEnclaveClient: HealthEnclave_HealthEnclaveClientProtocol {
   public let channel: GRPCChannel
   public var defaultCallOptions: CallOptions
 
@@ -54,155 +302,6 @@ public final class HealthEnclave_HealthEnclaveClient: GRPCClient, HealthEnclave_
     self.channel = channel
     self.defaultCallOptions = defaultCallOptions
   }
-
-  /// Async stream for monitoring connection status.
-  ///
-  /// The client should send a message at least every 2 seconds.
-  /// The server should respond immediateley.
-  ///
-  /// Callers should use the `send` method on the returned object to send messages
-  /// to the server. The caller should send an `.end` after the final message has been sent.
-  ///
-  /// - Parameters:
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
-  public func keepAlive(callOptions: CallOptions? = nil, handler: @escaping (SwiftProtobuf.Google_Protobuf_Empty) -> Void) -> BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeBidirectionalStreamingCall(path: "/health_enclave.HealthEnclave/KeepAlive",
-                                               callOptions: callOptions ?? self.defaultCallOptions,
-                                               handler: handler)
-  }
-
-  /// The client streams a list of documents locally present on the device.
-  ///
-  /// Callers should use the `send` method on the returned object to send messages
-  /// to the server. The caller should send an `.end` after the final message has been sent.
-  ///
-  /// - Parameters:
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  /// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response.
-  public func advertiseDocumentsToTerminal(callOptions: CallOptions? = nil) -> ClientStreamingCall<HealthEnclave_DocumentMetadata, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeClientStreamingCall(path: "/health_enclave.HealthEnclave/AdvertiseDocumentsToTerminal",
-                                        callOptions: callOptions ?? self.defaultCallOptions)
-  }
-
-  /// The server streams a list of documents that are not present on the device.
-  ///
-  /// The list may contain documents that are in fact present on the device, but
-  /// not advertised to the server, yet.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to MissingDocumentsForDevice.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func missingDocumentsForDevice(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
-    return self.makeServerStreamingCall(path: "/health_enclave.HealthEnclave/MissingDocumentsForDevice",
-                                        request: request,
-                                        callOptions: callOptions ?? self.defaultCallOptions,
-                                        handler: handler)
-  }
-
-  /// The server streams a list of documents that are not present on the terminal.
-  ///
-  /// The client shall treat received identifiers as LIFO queue.
-  /// Documents requested last shall be transmitted first.
-  /// This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to MissingDocumentsForTerminal.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func missingDocumentsForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
-    return self.makeServerStreamingCall(path: "/health_enclave.HealthEnclave/MissingDocumentsForTerminal",
-                                        request: request,
-                                        callOptions: callOptions ?? self.defaultCallOptions,
-                                        handler: handler)
-  }
-
-  /// Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
-  /// Thes keys give immediate access to documents.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to MissingEncryptedDocumentKeysForTerminal.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func missingEncryptedDocumentKeysForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
-    return self.makeServerStreamingCall(path: "/health_enclave.HealthEnclave/MissingEncryptedDocumentKeysForTerminal",
-                                        request: request,
-                                        callOptions: callOptions ?? self.defaultCallOptions,
-                                        handler: handler)
-  }
-
-  /// Stream a list of documents the server wants to obtain the corresponding twofold encrypted keys for.
-  /// Thes keys do not give access to documents and are meant for backup purpose.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to MissingTwofoldEncryptedDocumentKeysForTerminal.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func missingTwofoldEncryptedDocumentKeysForTerminal(_ request: SwiftProtobuf.Google_Protobuf_Empty, callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier> {
-    return self.makeServerStreamingCall(path: "/health_enclave.HealthEnclave/MissingTwofoldEncryptedDocumentKeysForTerminal",
-                                        request: request,
-                                        callOptions: callOptions ?? self.defaultCallOptions,
-                                        handler: handler)
-  }
-
-  /// Transfer the document for the fiven uuid to the client.
-  ///
-  /// The key is either onefold (new documents) or twofold (restore backup) encrypted.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to TransferDocumentToDevice.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func transferDocumentToDevice(_ request: HealthEnclave_DocumentIdentifier, callOptions: CallOptions? = nil, handler: @escaping (HealthEnclave_OneOrTwofoldEncyptedDocumentChunked) -> Void) -> ServerStreamingCall<HealthEnclave_DocumentIdentifier, HealthEnclave_OneOrTwofoldEncyptedDocumentChunked> {
-    return self.makeServerStreamingCall(path: "/health_enclave.HealthEnclave/TransferDocumentToDevice",
-                                        request: request,
-                                        callOptions: callOptions ?? self.defaultCallOptions,
-                                        handler: handler)
-  }
-
-  /// Transfer a document from device to terminal.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to TransferDocumentToTerminal.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func transferDocumentToTerminal(_ request: HealthEnclave_TwofoldEncyptedDocumentChunked, callOptions: CallOptions? = nil) -> UnaryCall<HealthEnclave_TwofoldEncyptedDocumentChunked, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(path: "/health_enclave.HealthEnclave/TransferDocumentToTerminal",
-                              request: request,
-                              callOptions: callOptions ?? self.defaultCallOptions)
-  }
-
-  /// Transfer a onefold encrypted key to the terminal.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to TransferEncryptedDocumentKeyToTerminal.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func transferEncryptedDocumentKeyToTerminal(_ request: HealthEnclave_EncryptedDocumentKeyWithId, callOptions: CallOptions? = nil) -> UnaryCall<HealthEnclave_EncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(path: "/health_enclave.HealthEnclave/TransferEncryptedDocumentKeyToTerminal",
-                              request: request,
-                              callOptions: callOptions ?? self.defaultCallOptions)
-  }
-
-  /// Transfer a twofold encrypted key to the terminal.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to TransferTwofoldEncryptedDocumentKeyToTerminal.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func transferTwofoldEncryptedDocumentKeyToTerminal(_ request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId, callOptions: CallOptions? = nil) -> UnaryCall<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(path: "/health_enclave.HealthEnclave/TransferTwofoldEncryptedDocumentKeyToTerminal",
-                              request: request,
-                              callOptions: callOptions ?? self.defaultCallOptions)
-  }
-
 }
 
 /// To build a server, implement a class that conforms to this protocol.
@@ -236,7 +335,7 @@ public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   /// The key is either onefold (new documents) or twofold (restore backup) encrypted.
   func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier, context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>) -> EventLoopFuture<GRPCStatus>
   /// Transfer a document from device to terminal.
-  func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncyptedDocumentChunked, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
+  func transferDocumentToTerminal(context: UnaryResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_TwofoldEncyptedDocumentChunked>) -> Void>
   /// Transfer a onefold encrypted key to the terminal.
   func transferEncryptedDocumentKeyToTerminal(request: HealthEnclave_EncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
   /// Transfer a twofold encrypted key to the terminal.
@@ -296,10 +395,8 @@ extension HealthEnclave_HealthEnclaveProvider {
       }
 
     case "TransferDocumentToTerminal":
-      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
-        return { request in
-          self.transferDocumentToTerminal(request: request, context: context)
-        }
+      return ClientStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+        return self.transferDocumentToTerminal(context: context)
       }
 
     case "TransferEncryptedDocumentKeyToTerminal":
@@ -322,12 +419,14 @@ extension HealthEnclave_HealthEnclaveProvider {
 }
 
 
-// Provides conformance to `GRPCPayload` for request and response messages
-extension SwiftProtobuf.Google_Protobuf_Empty: GRPCProtobufPayload {}
-extension HealthEnclave_DocumentMetadata: GRPCProtobufPayload {}
+// Provides conformance to `GRPCPayload`
 extension HealthEnclave_DocumentIdentifier: GRPCProtobufPayload {}
-extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
-extension HealthEnclave_TwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
+extension HealthEnclave_DocumentMetadata: GRPCProtobufPayload {}
+extension HealthEnclave_EncryptedDocumentKey: GRPCProtobufPayload {}
 extension HealthEnclave_EncryptedDocumentKeyWithId: GRPCProtobufPayload {}
+extension HealthEnclave_TwofoldEncryptedDocumentKey: GRPCProtobufPayload {}
 extension HealthEnclave_TwofoldEncryptedDocumentKeyWithId: GRPCProtobufPayload {}
-
+extension HealthEnclave_OneOrTwofoldEncyptedDocumentKey: GRPCProtobufPayload {}
+extension HealthEnclave_TwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
+extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
+extension HealthEnclave_WifiConfiguration: GRPCProtobufPayload {}

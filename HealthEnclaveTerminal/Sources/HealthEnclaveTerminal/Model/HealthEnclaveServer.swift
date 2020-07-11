@@ -66,11 +66,30 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     let missingDocumentsForDeviceSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
     private var missingDocumentsForDeviceSubscription: Cancellable?
     
+    let missingDocumentsForTerminalSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
+    private var missingDocumentsForTerminalSubscription: Cancellable?
+    
+    let missingEncryptedDocumentKeysForTerminalSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never> ()
+    private var missingEncryptedDocumentKeysForTerminalSubscription: Cancellable?
+    
+    let missingTwofoldEncryptedDocumentKeysForTerminalSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never> ()
+    private var missingTwofoldEncryptedDocumentKeysForTerminalSubscription: Cancellable?
+    
     private let _transferDocumentToDeviceRequestSubject =
         PassthroughSubject<(HealthEnclave_DocumentIdentifier, PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>), Never>();
     var transferDocumentToDeviceRequestSubject:
         AnyPublisher<(HealthEnclave_DocumentIdentifier, PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>), Never> {
         get { return _transferDocumentToDeviceRequestSubject.eraseToAnyPublisher() }
+    }
+    
+    private let _documentSubject = PassthroughSubject<AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Never>, Never>()
+    var documentSubject: AnyPublisher<AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Never>, Never> {
+        get { return _documentSubject.eraseToAnyPublisher() }
+    }
+    
+    private let _encryptedDocumentKeySubject = PassthroughSubject<HealthEnclave_EncryptedDocumentKeyWithId, Never>()
+    var encryptedDocumentKeySubject: AnyPublisher<HealthEnclave_EncryptedDocumentKeyWithId, Never> {
+        get { return _encryptedDocumentKeySubject.eraseToAnyPublisher() }
     }
     
     private let _twofoldEncryptedDocumentKeySubject = PassthroughSubject<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, Never>()
@@ -184,24 +203,54 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     func missingDocumentsForTerminal(request: Google_Protobuf_Empty,
                                      context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
         -> EventLoopFuture<GRPCStatus> {
-            return checkClient(context).flatMapThrowing {
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            return checkClient(context).flatMap { [weak self] in
+                let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
+                
+                self?.missingDocumentsForTerminalSubscription = self?.missingDocumentsForTerminalSubject
+                    .sink(
+                        receiveCompletion: {_ in
+                            promise.succeed(.ok)
+                    }, receiveValue: { documentIdentifier in
+                        _ = context.sendResponse(documentIdentifier)
+                    })
+                
+                return promise.futureResult
             }
     }
     
     func missingEncryptedDocumentKeysForTerminal(request: Google_Protobuf_Empty,
                                                  context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
         -> EventLoopFuture<GRPCStatus> {
-            return checkClient(context).flatMapThrowing {
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            return checkClient(context).flatMap { [weak self] in
+                let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
+                
+                self?.missingEncryptedDocumentKeysForTerminalSubscription = self?.missingEncryptedDocumentKeysForTerminalSubject
+                    .sink(
+                        receiveCompletion: {_ in
+                            promise.succeed(.ok)
+                    }, receiveValue: { documentIdentifier in
+                        _ = context.sendResponse(documentIdentifier)
+                    })
+                
+                return promise.futureResult
             }
     }
     
     func missingTwofoldEncryptedDocumentKeysForTerminal(request: Google_Protobuf_Empty,
                                                         context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>)
         -> EventLoopFuture<GRPCStatus> {
-            return checkClient(context).flatMapThrowing {
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            return checkClient(context).flatMap { [weak self] in
+                let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
+                
+                self?.missingTwofoldEncryptedDocumentKeysForTerminalSubscription = self?.missingTwofoldEncryptedDocumentKeysForTerminalSubject
+                    .sink(
+                        receiveCompletion: {_ in
+                            promise.succeed(.ok)
+                    }, receiveValue: { documentIdentifier in
+                        _ = context.sendResponse(documentIdentifier)
+                    })
+                
+                return promise.futureResult
             }
     }
     
@@ -229,19 +278,30 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
             }
     }
     
-    func transferDocumentToTerminal(request: HealthEnclave_TwofoldEncyptedDocumentChunked,
-                                    context: StatusOnlyCallContext)
-        -> EventLoopFuture<Google_Protobuf_Empty> {
-            return checkClient(context).flatMapThrowing {
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+    func transferDocumentToTerminal(context: UnaryResponseCallContext<Google_Protobuf_Empty>)
+        -> EventLoopFuture<(StreamEvent<HealthEnclave_TwofoldEncyptedDocumentChunked>) -> Void> {
+            return checkClient(context).map { [weak self] in
+                let documentStreamSubject = PassthroughSubject<HealthEnclave_TwofoldEncyptedDocumentChunked, Never>()
+                
+                self?._documentSubject.send(documentStreamSubject.eraseToAnyPublisher())
+                
+                return { event in
+                    switch event {
+                    case let .message(chunk):
+                        documentStreamSubject.send(chunk)
+                    case .end:
+                        documentStreamSubject.send(completion: .finished)
+                    }
+                }
             }
     }
     
     func transferEncryptedDocumentKeyToTerminal(request: HealthEnclave_EncryptedDocumentKeyWithId,
                                                 context: StatusOnlyCallContext)
         -> EventLoopFuture<Google_Protobuf_Empty> {
-            return checkClient(context).flatMapThrowing {
-                throw GRPCStatus(code: .unimplemented, message: "not implemented yet")
+            return checkClient(context).map { [weak self] in
+                self?._encryptedDocumentKeySubject.send(request)
+                return Google_Protobuf_Empty()
             }
     }
     
@@ -274,8 +334,10 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     }
     
     func close() {
-        missingDocumentsForDeviceSubject.send(completion: .finished)
         missingDocumentsForDeviceSubscription?.cancel()
+        missingDocumentsForTerminalSubscription?.cancel()
+        missingEncryptedDocumentKeysForTerminalSubscription?.cancel()
+        missingTwofoldEncryptedDocumentKeysForTerminalSubscription?.cancel()
         try! server?.close().wait()
         try! group.syncShutdownGracefully()
     }

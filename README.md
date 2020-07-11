@@ -56,7 +56,7 @@ on Linux.
 #### Mac
 Using Homebrew
 ```
-brew install gtk+3 glib glib-networking gobject-introspection pkg-config qrencode
+brew install gtk+3 glib gobject-introspection pkg-config qrencode adwaita-icon-theme
 ```
 
 #### Ubuntu
