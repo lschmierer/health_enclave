@@ -31,9 +31,6 @@ let package = Package(
             dependencies: [
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "GRPC", package: "grpc-swift"),
-        ]),
-        .testTarget(
-            name: "HealthEnclaveCommonTests",
-            dependencies: ["HealthEnclaveCommon"]),
+        ])
     ]
 )

@@ -13,7 +13,6 @@
 		BD6E21EC24251AED00033B0A /* ApplicationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E21EB24251AED00033B0A /* ApplicationModel.swift */; };
 		BD6E21F324251F8F00033B0A /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E21F224251F8F00033B0A /* ActivityIndicator.swift */; };
 		BD7182BF24278B34007013CE /* HealthEnclaveCommon in Frameworks */ = {isa = PBXBuildFile; productRef = BD7182BE24278B34007013CE /* HealthEnclaveCommon */; };
-		BD7182C224278DF7007013CE /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD7182C124278DF7007013CE /* NetworkExtension.framework */; };
 		BDCDBA8624B31232005ADB16 /* KeyChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCDBA8524B31232005ADB16 /* KeyChain.swift */; };
 		BDCDBA8824B31750005ADB16 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCDBA8724B31750005ADB16 /* ConnectView.swift */; };
 		BDCDBA8A24B335C2005ADB16 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCDBA8924B335C2005ADB16 /* SetupView.swift */; };
@@ -28,62 +27,14 @@
 		BDEE7300240D783000C73EB8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BDEE72FF240D783000C73EB8 /* Assets.xcassets */; };
 		BDEE7303240D783000C73EB8 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BDEE7302240D783000C73EB8 /* Preview Assets.xcassets */; };
 		BDEE7306240D783000C73EB8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BDEE7304240D783000C73EB8 /* LaunchScreen.storyboard */; };
-		BDEE7311240D783000C73EB8 /* HealthEnclaveAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE7310240D783000C73EB8 /* HealthEnclaveAppTests.swift */; };
-		BDEE731C240D783000C73EB8 /* HealthEnclaveAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE731B240D783000C73EB8 /* HealthEnclaveAppUITests.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		BD7D38082425289200453055 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BD6E21F82425251C00033B0A /* HealthEnclaveCommon.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "HealthEnclaveCommon::HealthEnclaveCommon::Product";
-			remoteInfo = HealthEnclaveCommon;
-		};
-		BD7D380A2425289200453055 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BD6E21F82425251C00033B0A /* HealthEnclaveCommon.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "HealthEnclaveCommon::HealthEnclaveCommonTests::Product";
-			remoteInfo = HealthEnclaveCommonTests;
-		};
-		BD7D380C2425289200453055 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BD6E21F82425251C00033B0A /* HealthEnclaveCommon.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "Sodium::Sodium::Product";
-			remoteInfo = Sodium;
-		};
-		BDEE730D240D783000C73EB8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BDEE72EE240D782B00C73EB8 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BDEE72F5240D782B00C73EB8;
-			remoteInfo = HealthEnclaveApp;
-		};
-		BDEE7318240D783000C73EB8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BDEE72EE240D782B00C73EB8 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BDEE72F5240D782B00C73EB8;
-			remoteInfo = HealthEnclaveApp;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
-		BD0B9CA92424E670000969B2 /* HealthEnclaveCommon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = HealthEnclaveCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD0B9CAB2424E676000969B2 /* Sodium.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sodium.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD249E2424BF3AA100A1A796 /* HealthEnclaveCommon */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HealthEnclaveCommon; path = ../HealthEnclaveCommon; sourceTree = "<group>"; };
 		BD401E6D24B3BB45007A5565 /* KeyboardAdaptive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardAdaptive.swift; sourceTree = "<group>"; };
 		BD6E21EB24251AED00033B0A /* ApplicationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationModel.swift; sourceTree = "<group>"; };
 		BD6E21F224251F8F00033B0A /* ActivityIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicator.swift; sourceTree = "<group>"; };
-		BD6E21F42425246500033B0A /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Package.swift; path = ../HealthEnclaveCommon/Package.swift; sourceTree = "<group>"; };
-		BD6E21F62425246E00033B0A /* HealthEnclaveCommon */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HealthEnclaveCommon; path = ../HealthEnclaveCommon; sourceTree = "<group>"; };
-		BD6E21F82425251C00033B0A /* HealthEnclaveCommon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = HealthEnclaveCommon.xcodeproj; path = ../HealthEnclaveCommon/HealthEnclaveCommon.xcodeproj; sourceTree = "<group>"; };
-		BD6E21FE2425257300033B0A /* HealthEnclaveCommon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = HealthEnclaveCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD6E22042425260A00033B0A /* Sodium.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sodium.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD6E22092425266000033B0A /* HealthEnclaveCommon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = HealthEnclaveCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD7182C024278DF7007013CE /* HealthEnclaveApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HealthEnclaveApp.entitlements; sourceTree = "<group>"; };
-		BD7182C124278DF7007013CE /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		BDCDBA8524B31232005ADB16 /* KeyChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyChain.swift; sourceTree = "<group>"; };
 		BDCDBA8724B31750005ADB16 /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
 		BDCDBA8924B335C2005ADB16 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
@@ -99,12 +50,6 @@
 		BDEE7302240D783000C73EB8 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		BDEE7305240D783000C73EB8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		BDEE7307240D783000C73EB8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BDEE730C240D783000C73EB8 /* HealthEnclaveAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HealthEnclaveAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		BDEE7310240D783000C73EB8 /* HealthEnclaveAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthEnclaveAppTests.swift; sourceTree = "<group>"; };
-		BDEE7312240D783000C73EB8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BDEE7317240D783000C73EB8 /* HealthEnclaveAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HealthEnclaveAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		BDEE731B240D783000C73EB8 /* HealthEnclaveAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthEnclaveAppUITests.swift; sourceTree = "<group>"; };
-		BDEE731D240D783000C73EB8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,29 +59,22 @@
 			files = (
 				BDCDBA8D24B34E1A005ADB16 /* BIP39 in Frameworks */,
 				BD7182BF24278B34007013CE /* HealthEnclaveCommon in Frameworks */,
-				BD7182C224278DF7007013CE /* NetworkExtension.framework in Frameworks */,
 				BD6E21E82425098100033B0A /* CarBode in Frameworks */,
 				BD4B43A524BDF2DD00668B85 /* Logging in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDEE7309240D783000C73EB8 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDEE7314240D783000C73EB8 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BD249E2324BF3AA100A1A796 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BD249E2424BF3AA100A1A796 /* HealthEnclaveCommon */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		BD6E21E924251ACD00033B0A /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -162,24 +100,12 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
-		BD7D38002425289200453055 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				BD7D38092425289200453055 /* HealthEnclaveCommon.framework */,
-				BD7D380B2425289200453055 /* HealthEnclaveCommonTests.xctest */,
-				BD7D380D2425289200453055 /* Sodium.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		BDEE72ED240D782B00C73EB8 = {
 			isa = PBXGroup;
 			children = (
 				BDEE72F8240D782B00C73EB8 /* HealthEnclaveApp */,
-				BDEE730F240D783000C73EB8 /* HealthEnclaveAppTests */,
-				BDEE731A240D783000C73EB8 /* HealthEnclaveAppUITests */,
 				BDEE72F7240D782B00C73EB8 /* Products */,
-				BDEE7329240D78FF00C73EB8 /* Frameworks */,
+				BD249E2324BF3AA100A1A796 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -187,8 +113,6 @@
 			isa = PBXGroup;
 			children = (
 				BDEE72F6240D782B00C73EB8 /* HealthEnclaveApp.app */,
-				BDEE730C240D783000C73EB8 /* HealthEnclaveAppTests.xctest */,
-				BDEE7317240D783000C73EB8 /* HealthEnclaveAppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -217,40 +141,6 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		BDEE730F240D783000C73EB8 /* HealthEnclaveAppTests */ = {
-			isa = PBXGroup;
-			children = (
-				BDEE7310240D783000C73EB8 /* HealthEnclaveAppTests.swift */,
-				BDEE7312240D783000C73EB8 /* Info.plist */,
-			);
-			path = HealthEnclaveAppTests;
-			sourceTree = "<group>";
-		};
-		BDEE731A240D783000C73EB8 /* HealthEnclaveAppUITests */ = {
-			isa = PBXGroup;
-			children = (
-				BDEE731B240D783000C73EB8 /* HealthEnclaveAppUITests.swift */,
-				BDEE731D240D783000C73EB8 /* Info.plist */,
-			);
-			path = HealthEnclaveAppUITests;
-			sourceTree = "<group>";
-		};
-		BDEE7329240D78FF00C73EB8 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				BD7182C124278DF7007013CE /* NetworkExtension.framework */,
-				BD6E22092425266000033B0A /* HealthEnclaveCommon.framework */,
-				BD6E22042425260A00033B0A /* Sodium.framework */,
-				BD6E21FE2425257300033B0A /* HealthEnclaveCommon.framework */,
-				BD6E21F62425246E00033B0A /* HealthEnclaveCommon */,
-				BD6E21F82425251C00033B0A /* HealthEnclaveCommon.xcodeproj */,
-				BD6E21F42425246500033B0A /* Package.swift */,
-				BD0B9CAB2424E676000969B2 /* Sodium.framework */,
-				BD0B9CA92424E670000969B2 /* HealthEnclaveCommon.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -277,42 +167,6 @@
 			productReference = BDEE72F6240D782B00C73EB8 /* HealthEnclaveApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		BDEE730B240D783000C73EB8 /* HealthEnclaveAppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = BDEE7323240D783000C73EB8 /* Build configuration list for PBXNativeTarget "HealthEnclaveAppTests" */;
-			buildPhases = (
-				BDEE7308240D783000C73EB8 /* Sources */,
-				BDEE7309240D783000C73EB8 /* Frameworks */,
-				BDEE730A240D783000C73EB8 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				BDEE730E240D783000C73EB8 /* PBXTargetDependency */,
-			);
-			name = HealthEnclaveAppTests;
-			productName = HealthEnclaveAppTests;
-			productReference = BDEE730C240D783000C73EB8 /* HealthEnclaveAppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		BDEE7316240D783000C73EB8 /* HealthEnclaveAppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = BDEE7326240D783000C73EB8 /* Build configuration list for PBXNativeTarget "HealthEnclaveAppUITests" */;
-			buildPhases = (
-				BDEE7313240D783000C73EB8 /* Sources */,
-				BDEE7314240D783000C73EB8 /* Frameworks */,
-				BDEE7315240D783000C73EB8 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				BDEE7319240D783000C73EB8 /* PBXTargetDependency */,
-			);
-			name = HealthEnclaveAppUITests;
-			productName = HealthEnclaveAppUITests;
-			productReference = BDEE7317240D783000C73EB8 /* HealthEnclaveAppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -325,14 +179,6 @@
 				TargetAttributes = {
 					BDEE72F5240D782B00C73EB8 = {
 						CreatedOnToolsVersion = 11.3.1;
-					};
-					BDEE730B240D783000C73EB8 = {
-						CreatedOnToolsVersion = 11.3.1;
-						TestTargetID = BDEE72F5240D782B00C73EB8;
-					};
-					BDEE7316240D783000C73EB8 = {
-						CreatedOnToolsVersion = 11.3.1;
-						TestTargetID = BDEE72F5240D782B00C73EB8;
 					};
 				};
 			};
@@ -352,44 +198,12 @@
 			);
 			productRefGroup = BDEE72F7240D782B00C73EB8 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = BD7D38002425289200453055 /* Products */;
-					ProjectRef = BD6E21F82425251C00033B0A /* HealthEnclaveCommon.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				BDEE72F5240D782B00C73EB8 /* HealthEnclaveApp */,
-				BDEE730B240D783000C73EB8 /* HealthEnclaveAppTests */,
-				BDEE7316240D783000C73EB8 /* HealthEnclaveAppUITests */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		BD7D38092425289200453055 /* HealthEnclaveCommon.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = HealthEnclaveCommon.framework;
-			remoteRef = BD7D38082425289200453055 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		BD7D380B2425289200453055 /* HealthEnclaveCommonTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = file;
-			path = HealthEnclaveCommonTests.xctest;
-			remoteRef = BD7D380A2425289200453055 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		BD7D380D2425289200453055 /* Sodium.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Sodium.framework;
-			remoteRef = BD7D380C2425289200453055 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		BDEE72F4240D782B00C73EB8 /* Resources */ = {
@@ -399,20 +213,6 @@
 				BDEE7306240D783000C73EB8 /* LaunchScreen.storyboard in Resources */,
 				BDEE7303240D783000C73EB8 /* Preview Assets.xcassets in Resources */,
 				BDEE7300240D783000C73EB8 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDEE730A240D783000C73EB8 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDEE7315240D783000C73EB8 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -439,36 +239,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		BDEE7308240D783000C73EB8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BDEE7311240D783000C73EB8 /* HealthEnclaveAppTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDEE7313240D783000C73EB8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BDEE731C240D783000C73EB8 /* HealthEnclaveAppUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		BDEE730E240D783000C73EB8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BDEE72F5240D782B00C73EB8 /* HealthEnclaveApp */;
-			targetProxy = BDEE730D240D783000C73EB8 /* PBXContainerItemProxy */;
-		};
-		BDEE7319240D783000C73EB8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BDEE72F5240D782B00C73EB8 /* HealthEnclaveApp */;
-			targetProxy = BDEE7318240D783000C73EB8 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		BDEE7304240D783000C73EB8 /* LaunchScreen.storyboard */ = {
@@ -642,90 +413,6 @@
 			};
 			name = Release;
 		};
-		BDEE7324240D783000C73EB8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = JL52ULGBD3;
-				INFOPLIST_FILE = HealthEnclaveAppTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = de.lschmierer.HealthEnclaveAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HealthEnclaveApp.app/HealthEnclaveApp";
-			};
-			name = Debug;
-		};
-		BDEE7325240D783000C73EB8 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = JL52ULGBD3;
-				INFOPLIST_FILE = HealthEnclaveAppTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = de.lschmierer.HealthEnclaveAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HealthEnclaveApp.app/HealthEnclaveApp";
-			};
-			name = Release;
-		};
-		BDEE7327240D783000C73EB8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = JL52ULGBD3;
-				INFOPLIST_FILE = HealthEnclaveAppUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = de.lschmierer.HealthEnclaveAppUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = HealthEnclaveApp;
-			};
-			name = Debug;
-		};
-		BDEE7328240D783000C73EB8 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = JL52ULGBD3;
-				INFOPLIST_FILE = HealthEnclaveAppUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = de.lschmierer.HealthEnclaveAppUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = HealthEnclaveApp;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -743,24 +430,6 @@
 			buildConfigurations = (
 				BDEE7321240D783000C73EB8 /* Debug */,
 				BDEE7322240D783000C73EB8 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		BDEE7323240D783000C73EB8 /* Build configuration list for PBXNativeTarget "HealthEnclaveAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				BDEE7324240D783000C73EB8 /* Debug */,
-				BDEE7325240D783000C73EB8 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		BDEE7326240D783000C73EB8 /* Build configuration list for PBXNativeTarget "HealthEnclaveAppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				BDEE7327240D783000C73EB8 /* Debug */,
-				BDEE7328240D783000C73EB8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
