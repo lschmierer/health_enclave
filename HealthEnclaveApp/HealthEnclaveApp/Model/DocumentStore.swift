@@ -11,6 +11,8 @@ import Combine
 
 import HealthEnclaveCommon
 
+private let chunkSize = 16 * 1024
+
 private let applicationSupportDirectory = try! FileManager.default.url(for: .applicationSupportDirectory,
                                                                        in: .userDomainMask,
                                                                        appropriateFor: nil, create: true)
@@ -19,6 +21,11 @@ private let globalStorageFolder = applicationSupportDirectory.appendingPathCompo
 private let globalDocumentsFolder = globalStorageFolder.appendingPathComponent("Documents", isDirectory: true)
 private let globalMetadataFolder = globalStorageFolder.appendingPathComponent("Metadata", isDirectory: true)
 private let globalDocumentKeysFolder = globalStorageFolder.appendingPathComponent("Document Keys", isDirectory: true)
+
+enum DocumentStoreError: Error {
+    case missingMetadata
+    case missingKey
+}
 
 class DocumentStore {
     private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
@@ -70,19 +77,19 @@ class DocumentStore {
                 switch completion {
                 case .finished:
                     guard let metadata = metadata else {
-                        os_log(.error, "Receiving document failed: metadata missing")
+                        os_log(.error, "Storing document failed: metadata missing")
                         return
                     }
                     guard let key = key else {
-                        os_log(.error, "Receiving document failed: key missing")
+                        os_log(.error, "Storing document failed: key missing")
                         return
                     }
                     guard !data.isEmpty else {
-                        os_log(.error, "Receiving document failed: data missing")
+                        os_log(.error, "Storing document failed: data missing")
                         return
                     }
                     
-                    os_log(.info, "Received Document with id: %@", metadata.id.uuid)
+                    os_log(.info, "Stored Document with id: %@", metadata.id.uuid)
                     
                     self.documentsMetadata[metadata.id] = metadata
                     try! self.storeMetadata(metadata, with: metadata.id)
@@ -90,7 +97,7 @@ class DocumentStore {
                     try! self.storeDocument(data, with: metadata.id)
                     break
                 case let .failure(error):
-                    os_log(.error, "Receiving document failed: %@", error.localizedDescription)
+                    os_log(.error, "Storing document failed: %@", error.localizedDescription)
                 }
             }, receiveValue: { chunk in
                 switch chunk.content {
@@ -108,6 +115,56 @@ class DocumentStore {
     
     func allDocumentsMetadata() -> [HealthEnclave_DocumentMetadata] {
         return Array(documentsMetadata.values)
+    }
+    
+    func metadata(for identifier: HealthEnclave_DocumentIdentifier) -> HealthEnclave_DocumentMetadata? {
+        return documentsMetadata[identifier]
+    }
+    
+    func twofoldEncryptedDocumentKey(with identifier: HealthEnclave_DocumentIdentifier) throws -> HealthEnclave_TwofoldEncryptedDocumentKey? {
+        return try readTwofoldEncryptedDocumentKey(for: identifier)
+    }
+    
+    func encryptedDocumentChunked(for identifier: HealthEnclave_DocumentIdentifier) throws -> [HealthEnclave_TwofoldEncyptedDocumentChunked] {
+        guard let metadata = documentsMetadata[identifier] else {
+            throw DocumentStoreError.missingMetadata
+        }
+        
+        guard let key = try readTwofoldEncryptedDocumentKey(for: identifier)  else {
+            throw DocumentStoreError.missingKey
+        }
+        
+        var chunks = [HealthEnclave_TwofoldEncyptedDocumentChunked]()
+        
+        let data = try readDocument(for: identifier)
+        
+        chunks.append(HealthEnclave_TwofoldEncyptedDocumentChunked.with {
+            $0.metadata = metadata
+        })
+        
+        chunks.append(HealthEnclave_TwofoldEncyptedDocumentChunked.with {
+            $0.key = key
+        })
+        
+        let fullChunks = Int(data.count / chunkSize)
+        let totalChunks = fullChunks + (data.count % chunkSize != 0 ? 1 : 0)
+        
+        for chunkCounter in 0..<totalChunks
+        {
+            var chunk: Data
+            let chunkBase = chunkCounter * chunkSize
+            var diff = chunkSize
+            if chunkCounter == totalChunks - 1
+            {
+                diff = data.count - chunkBase
+            }
+            chunk = data.subdata(in: chunkBase..<(chunkBase + diff))
+            
+            chunks.append(HealthEnclave_TwofoldEncyptedDocumentChunked.with {
+                $0.chunk = chunk
+            })
+        }
+        return chunks
     }
     
     private func readMetadata() throws {
@@ -128,20 +185,20 @@ class DocumentStore {
         }
     }
     
-    private func readTwofoldEncryptedDocumentKey(for identifier: HealthEnclave_DocumentIdentifier) throws
-        -> HealthEnclave_TwofoldEncryptedDocumentKey? {
-            let keyFile = documentKeysFolder.appendingPathComponent(identifier.uuid)
-            if FileManager.default.fileExists(atPath: keyFile.path) {
-                return try HealthEnclave_TwofoldEncryptedDocumentKey(serializedData: Data(contentsOf: keyFile))
-            } else {
-                return nil
-            }
+    private func readDocument(for identifier: HealthEnclave_DocumentIdentifier) throws
+    -> Data {
+        let keyFile = documentsFolder.appendingPathComponent(identifier.uuid)
+        return try Data(contentsOf: keyFile)
     }
     
-    private func readDocument(for identifier: HealthEnclave_DocumentIdentifier) throws
-        -> Data {
-            let keyFile = documentsFolder.appendingPathComponent(identifier.uuid)
-            return try Data(contentsOf: keyFile)
+    private func readTwofoldEncryptedDocumentKey(for identifier: HealthEnclave_DocumentIdentifier) throws
+    -> HealthEnclave_TwofoldEncryptedDocumentKey? {
+        let keyFile = documentKeysFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: keyFile.path) {
+            return try HealthEnclave_TwofoldEncryptedDocumentKey(serializedData: Data(contentsOf: keyFile))
+        } else {
+            return nil
+        }
     }
     
     private func storeDocument(_ document: Data,

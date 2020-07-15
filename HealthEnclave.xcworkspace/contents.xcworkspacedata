@@ -7,7 +7,4 @@
    <FileRef
       location = "group:HealthEnclaveTerminal/HealthEnclaveTerminal.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:HealthEnclaveApp/HealthEnclaveApp.xcodeproj">
-   </FileRef>
 </Workspace>

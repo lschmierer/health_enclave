@@ -17,7 +17,7 @@ import HealthEnclaveCommon
 
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.DocumentStore")
 
-private let chunkSize = 1024
+private let chunkSize = 16 * 1024
 
 private let globalStorageFolder = applicationSupportDirectory.appendingPathComponent("Storage", isDirectory: true)
 private let globalDocumentsFolder = globalStorageFolder.appendingPathComponent("Documents", isDirectory: true)
@@ -36,14 +36,10 @@ class DocumentStore {
     private let metadataFolder: URL
     private let documentKeysFolder: URL
     
-    private var encryptedDocuments =
-        [HealthEnclave_DocumentIdentifier: Data]()
     private var documentsMetadata =
         [HealthEnclave_DocumentIdentifier: HealthEnclave_DocumentMetadata]()
     private var encryptedDocumentKeys =
         [HealthEnclave_DocumentIdentifier: HealthEnclave_EncryptedDocumentKey]()
-    private var twofoldEncryptedDocumentKeys =
-        [HealthEnclave_DocumentIdentifier: HealthEnclave_TwofoldEncryptedDocumentKey]()
     
     init(for deviceIdentifier: DeviceCryptography.DeviceIdentifier) throws {
         self.deviceIdentifier = deviceIdentifier
@@ -68,35 +64,31 @@ class DocumentStore {
         try readMetadata()
     }
     
-    func addNewEncryptedDocument(_ document: Data,
-                                 with metadata: HealthEnclave_DocumentMetadata,
-                                 encryptedWith encryptedKey: HealthEnclave_EncryptedDocumentKey) throws {
-        encryptedDocuments[metadata.id] = document
+    func storeEncryptedDocument(_ document: Data,
+                                with metadata: HealthEnclave_DocumentMetadata,
+                                encryptedWith encryptedKey: HealthEnclave_EncryptedDocumentKey) throws {
         documentsMetadata[metadata.id] = metadata
         encryptedDocumentKeys[metadata.id] = encryptedKey
         try storeDocument(document, with: metadata.id)
         try storeMetadata(metadata, with: metadata.id)
     }
     
-    func addTwofoldEncryptedDocument(_ document: Data,
-                                 with metadata: HealthEnclave_DocumentMetadata,
-                                 encryptedWith encryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey) throws {
-        encryptedDocuments[metadata.id] = document
+    func storeTwofoldEncryptedDocument(_ document: Data,
+                                       with metadata: HealthEnclave_DocumentMetadata,
+                                       encryptedWith encryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey) throws {
         documentsMetadata[metadata.id] = metadata
-        twofoldEncryptedDocumentKeys[metadata.id] = encryptedKey
         try storeDocument(document, with: metadata.id)
         try storeMetadata(metadata, with: metadata.id)
         try storeTwofoldEncryptedKey(encryptedKey, with: metadata.id)
     }
     
-    func addEncryptedDocumentKey(_ key: HealthEnclave_EncryptedDocumentKey,
-                                 for identifier: HealthEnclave_DocumentIdentifier) throws {
+    func storeEncryptedDocumentKey(_ key: HealthEnclave_EncryptedDocumentKey,
+                                   for identifier: HealthEnclave_DocumentIdentifier) throws {
         encryptedDocumentKeys[identifier] = key
     }
     
-    func addTwofoldEncryptedDocumentKey(_ key: HealthEnclave_TwofoldEncryptedDocumentKey,
-                                        for identifier: HealthEnclave_DocumentIdentifier) throws {
-        twofoldEncryptedDocumentKeys[identifier] = key
+    func storeTwofoldEncryptedDocumentKey(_ key: HealthEnclave_TwofoldEncryptedDocumentKey,
+                                          for identifier: HealthEnclave_DocumentIdentifier) throws {
         try storeTwofoldEncryptedKey(key, with: identifier)
     }
     
@@ -104,29 +96,24 @@ class DocumentStore {
         return Array(documentsMetadata.values)
     }
     
-    func encryptedDocument(with identifier: HealthEnclave_DocumentIdentifier) -> (HealthEnclave_DocumentMetadata, HealthEnclave_OneOrTwofoldEncyptedDocumentKey, Data)? {
-        guard let metadata = documentsMetadata[identifier],
-            let data = try? readDocument(for: identifier) else {
-                return nil
-        }
-        if let onefoldEncryptedKey = encryptedDocumentKeys[identifier] {
-            return (metadata,
-                    HealthEnclave_OneOrTwofoldEncyptedDocumentKey.with {
-                        $0.onefoldEncryptedKey = onefoldEncryptedKey
-                },
-                    data)
-        } else if let twofoldEncryptedKey = try? readTwofoldEncryptedDocumentKey(for: identifier) {
-            return (metadata,
-                    HealthEnclave_OneOrTwofoldEncyptedDocumentKey.with {
-                        $0.twofoldEncryptedKey = twofoldEncryptedKey},
-                    data)
-        } else {
-            return nil
-        }
+    func metadata(for identifier: HealthEnclave_DocumentIdentifier) -> HealthEnclave_DocumentMetadata? {
+        return documentsMetadata[identifier]
     }
     
-    func requestDocumentStream(for identifier: HealthEnclave_DocumentIdentifier,
-                               on documentStreamSubject: PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>) throws {
+    func encryptedDocumentKey(with identifier: HealthEnclave_DocumentIdentifier) -> HealthEnclave_EncryptedDocumentKey? {
+        return encryptedDocumentKeys[identifier]
+    }
+    
+    func twofoldEncryptedDocumentKey(with identifier: HealthEnclave_DocumentIdentifier) throws -> HealthEnclave_TwofoldEncryptedDocumentKey? {
+        return try readTwofoldEncryptedDocumentKey(for: identifier)
+    }
+    
+    func encryptedDocument(with identifier: HealthEnclave_DocumentIdentifier) throws -> Data? {
+        return try readDocument(for: identifier)
+    }
+    
+    func encryptedDocumentStream(for identifier: HealthEnclave_DocumentIdentifier,
+                                 on documentStreamSubject: PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Never>) throws {
         guard let metadata = documentsMetadata[identifier] else {
             throw DocumentStoreError.missingMetadata
         }
@@ -145,6 +132,7 @@ class DocumentStore {
         }
         
         let data = try readDocument(for: identifier)
+        debugPrint("Document Data Length: " + String(reflecting: data.count))
         
         documentStreamSubject.send(HealthEnclave_OneOrTwofoldEncyptedDocumentChunked.with {
             $0.metadata = metadata
@@ -209,12 +197,6 @@ class DocumentStore {
             return try Data(contentsOf: keyFile)
     }
     
-    private func storeDocument(_ document: Data,
-                               with identifier: HealthEnclave_DocumentIdentifier) throws {
-        let uri = documentsFolder.appendingPathComponent(identifier.uuid)
-        try document.write(to: uri)
-    }
-    
     private func storeMetadata(_ metadata: HealthEnclave_DocumentMetadata,
                                with identifier: HealthEnclave_DocumentIdentifier) throws {
         let uri = metadataFolder.appendingPathComponent(identifier.uuid)
@@ -225,5 +207,11 @@ class DocumentStore {
                                           with identifier: HealthEnclave_DocumentIdentifier) throws {
         let uri = documentKeysFolder.appendingPathComponent(identifier.uuid)
         try key.serializedData().write(to: uri)
+    }
+    
+    private func storeDocument(_ document: Data,
+                               with identifier: HealthEnclave_DocumentIdentifier) throws {
+        let uri = documentsFolder.appendingPathComponent(identifier.uuid)
+        try document.write(to: uri)
     }
 }

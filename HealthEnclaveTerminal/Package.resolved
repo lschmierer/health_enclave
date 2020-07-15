@@ -78,8 +78,8 @@
         "repositoryURL": "https://github.com/apple/swift-protobuf.git",
         "state": {
           "branch": null,
-          "revision": "4d5fc241fbb6edf00ffe54a6ffe02eff8064a17c",
-          "version": "1.10.1"
+          "revision": "f33185acd089405d365982ccab2f58469052a545",
+          "version": "1.10.2"
         }
       },
       {
@@ -105,7 +105,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdk.git",
         "state": {
           "branch": "master",
-          "revision": "e3d2a3f409b40fc5543328e20e12d39179930893",
+          "revision": "d939b7a06f774e9f968f30176a1bedccf1c65299",
           "version": null
         }
       },
@@ -114,7 +114,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGdkPixbuf.git",
         "state": {
           "branch": "master",
-          "revision": "f8a105734c97f650eaf5e535e651cc1a1eebaf7c",
+          "revision": "47a6892039bc9ab7cd37d1c0f83a333999cdc1f2",
           "version": null
         }
       },
@@ -159,7 +159,7 @@
         "repositoryURL": "https://github.com/rhx/SwiftGtk.git",
         "state": {
           "branch": "master",
-          "revision": "1ef1b46a02020cb8d981de99375172e268183c2d",
+          "revision": "0a292e76121a9d025a832e404d49b376dca79de0",
           "version": null
         }
       },

@@ -19,8 +19,6 @@ struct ConnectView: View {
     @State private var alertTitle: String?
     @State private var alertMessage: String?
     
-    @State private var connectSubscription: Cancellable?
-    
     var body: some View {
         ZStack {
             Color.black
@@ -44,39 +42,30 @@ struct ConnectView: View {
                 CBScanner(supportBarcode: [.qr])
                     .interval(delay: 0.2)
                     .found { data in
-                        if self.model.isConnecting || data == self.lastQrData {
+                        guard self.lastQrData != data else {
                             return
                         }
+                        
                         self.lastQrData = data
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             self.lastQrData = nil
                         }
                         
-                        self.connectSubscription = self.model.connect(to: data)
-                            .receive(on: DispatchQueue.main)
-                            .sink(receiveCompletion: { completion in
-                            if case let .failure(error) = completion {
-                                self.showAlert = true
-                                self.alertTitle = "Connection error"
-                                self.alertMessage = error.localizedDescription
-                            }
-                        }, receiveValue: { client in
-                            self.lastQrData = nil
-                        })
-                }
+                        self.model.connect(to: data)
+                    }
                 VStack(spacing: 40) {
                     if(!model.isConnecting) {
-                    Rectangle()
-                        .stroke(Color.white, style: StrokeStyle(
-                            lineWidth: 4,
-                            lineCap: .round,
-                            lineJoin: .round,
-                            dash: [30, 120, 30, 0]))
-                        .frame(width: 180, height: 180)
-                    Text("Please Scan\nTerminal QR Code")
-                        .foregroundColor(Color.white)
-                        .multilineTextAlignment(.center)
-                        .shadow(radius: 4)
+                        Rectangle()
+                            .stroke(Color.white, style: StrokeStyle(
+                                        lineWidth: 4,
+                                        lineCap: .round,
+                                        lineJoin: .round,
+                                        dash: [30, 120, 30, 0]))
+                            .frame(width: 180, height: 180)
+                        Text("Please Scan\nTerminal QR Code")
+                            .foregroundColor(Color.white)
+                            .multilineTextAlignment(.center)
+                            .shadow(radius: 4)
                     } else {
                         ActivityIndicator(isAnimating: .constant(true))
                         Text("Connecting...")
@@ -91,6 +80,13 @@ struct ConnectView: View {
         .alert(isPresented: $showAlert) {
             Alert(title: Text(alertTitle ?? ""), message: Text(alertMessage ?? ""))
         }
+        .onReceive(model.$connectionError, perform: { error in
+            if let error = error {
+                self.showAlert = true
+                self.alertTitle = "Connection error"
+                self.alertMessage = error.localizedDescription
+            }
+        })
     }
 }
 

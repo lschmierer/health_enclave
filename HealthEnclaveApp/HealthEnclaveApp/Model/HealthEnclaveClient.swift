@@ -22,24 +22,39 @@ extension String: LocalizedError {
 }
 
 class HealthEnclaveClient {
-    private let _documentReceivedSubject = PassthroughSubject<PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>, Never>()
-    var documentReceivedSubject: AnyPublisher<PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>, Never> {
-        get { return _documentReceivedSubject.eraseToAnyPublisher() }
-    }
-    
     private let group: EventLoopGroup
     private var client: HealthEnclave_HealthEnclaveClient
-    private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
+    
     private var keepAliveCall: BidirectionalStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>?
     private var keepAliveTask: RepeatedTask?
-    private var missingDocumentsCall: ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclaveCommon.HealthEnclave_DocumentIdentifier>?
+    
+    private let _missingDocumentsForDeviceSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
+    var missingDocumentsForDeviceSubject: AnyPublisher<HealthEnclave_DocumentIdentifier, Never> {
+        get { return _missingDocumentsForDeviceSubject.eraseToAnyPublisher() }
+    }
+    
+    private let _missingDocumentsForTerminalSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
+    var missingDocumentsForTerminalSubject: AnyPublisher<HealthEnclave_DocumentIdentifier, Never> {
+        get { return _missingDocumentsForTerminalSubject.eraseToAnyPublisher() }
+    }
+    
+    private let _missingEncryptedDocumentKeyForTerminalSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
+    var missingEncryptedDocumentKeyForTerminalSubject: AnyPublisher<HealthEnclave_DocumentIdentifier, Never> {
+        get { return _missingEncryptedDocumentKeyForTerminalSubject.eraseToAnyPublisher() }
+    }
+    
+    private let _missingTwofoldEncryptedDocumentKeyForTerminalSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
+    var missingTwofoldEncryptedDocumentKeyForTerminalSubject: AnyPublisher<HealthEnclave_DocumentIdentifier, Never> {
+        get { return _missingTwofoldEncryptedDocumentKeyForTerminalSubject.eraseToAnyPublisher() }
+    }
     
     class func create(ipAddress: String,
                       port: Int,
                       certificate: NIOSSLCertificate,
-                      deviceIdentifier: DeviceCryptography.DeviceIdentifier) -> AnyPublisher<HealthEnclaveClient, ApplicationError> {
+                      deviceIdentifier: DeviceCryptography.DeviceIdentifier,
+                      advertisedDocumentsMetadata: [HealthEnclave_DocumentMetadata]) -> AnyPublisher<HealthEnclaveClient, ApplicationError> {
         let client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate, deviceIdentifier: deviceIdentifier)
-        return client.establishConnection()
+        return client.establishConnection(advertisedDocumentsMetadata)
             .map { client }
             .eraseToAnyPublisher()
     }
@@ -48,7 +63,7 @@ class HealthEnclaveClient {
                  port: Int,
                  certificate: NIOSSLCertificate,
                  deviceIdentifier: DeviceCryptography.DeviceIdentifier) {
-        group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        group = PlatformSupport.makeEventLoopGroup(loopCount: 1)
         
         let configuration = ClientConnection.Configuration(
             target: .hostAndPort(ipAddress, port),
@@ -61,15 +76,18 @@ class HealthEnclaveClient {
         )
         let channel = ClientConnection(configuration: configuration)
         
-        client = HealthEnclave_HealthEnclaveClient(channel: channel)
-        self.deviceIdentifier = deviceIdentifier
+        let callOptions = CallOptions(customMetadata: [
+            "deviceIdentifier": deviceIdentifier.hexEncodedString
+        ])
+        
+        client = HealthEnclave_HealthEnclaveClient(channel: channel, defaultCallOptions: callOptions)
     }
     
-    private func establishConnection() -> AnyPublisher<Void, ApplicationError>  {
+    private func establishConnection(_ advertisedDocumentsMetadata: [HealthEnclave_DocumentMetadata]) -> AnyPublisher<Void, ApplicationError>  {
         let subject = PassthroughSubject<Void, ApplicationError>()
         var sentToSubject = false
         
-        self.keepAliveCall = self.client.keepAlive(callOptions: self.callOptions()) { _ in
+        self.keepAliveCall = self.client.keepAlive { _ in
             if !sentToSubject {
                 sentToSubject = true
                 subject.send(Void())
@@ -90,39 +108,81 @@ class HealthEnclaveClient {
             }
         }
         
-        self.keepAliveTask = self.group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: keepAliveInterval, { task in
-            guard let keepAliveCall = self.keepAliveCall else {
-                let cancelPromise: EventLoopPromise<Void> = self.group.next().makePromise()
-                task.cancel(promise: cancelPromise)
-                return cancelPromise.futureResult
-            }
-            return keepAliveCall.sendMessage(Google_Protobuf_Empty());
+        self.keepAliveTask = self.group.next()
+            .scheduleRepeatedTask(initialDelay: .seconds(0), delay: keepAliveInterval, { [weak self] task in
+                if let keepAliveCall = self?.keepAliveCall {
+                    os_log(.info, "Send KeepAlive")
+                    _ = keepAliveCall.sendMessage(Google_Protobuf_Empty()).always({ result in
+                        os_log(.info, "KeepAlive sent: %@", String(reflecting: result))
+                    });
+                } else {
+                    task.cancel()
+                }
         })
         
-        self.missingDocumentsCall = self.client.missingDocumentsForDevice(Google_Protobuf_Empty(), callOptions: self.callOptions()) { [weak self] identifier in
-            let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>()
-            guard let self = self else { return }
-            self._documentReceivedSubject.send(documentStreamSubject)
-            
-            let transferDocumentToDeviceCall = self.client.transferDocumentToDevice(identifier, callOptions: self.callOptions()) { documentChunked in
-                documentStreamSubject.send(documentChunked)
-            }
-            _ = transferDocumentToDeviceCall.status.map { status in
-                if status == .ok {
-                    documentStreamSubject.send(completion: .finished)
-                } else {
-                    documentStreamSubject.send(completion: .failure(status))
-                }
-            }
+        let streamingCall = client.advertiseDocumentsToTerminal()
+        _ = streamingCall.sendMessages(advertisedDocumentsMetadata)
+        _ = streamingCall.sendEnd()
+        
+        _ = self.client.missingDocumentsForDevice(Google_Protobuf_Empty()) { [weak self] documentIdentifier in
+            self?._missingDocumentsForDeviceSubject.send(documentIdentifier)
+        }
+        
+        _ = self.client.missingDocumentsForTerminal(Google_Protobuf_Empty()) { [weak self] documentIdentifier in
+            self?._missingDocumentsForTerminalSubject.send(documentIdentifier)
+        }
+        
+        _ = self.client.missingEncryptedDocumentKeysForTerminal(Google_Protobuf_Empty()) { [weak self] documentIdentifier in
+            self?._missingEncryptedDocumentKeyForTerminalSubject.send(documentIdentifier)
+        }
+        
+        _ = self.client.missingTwofoldEncryptedDocumentKeysForTerminal(Google_Protobuf_Empty()) { [weak self] documentIdentifier in
+            self?._missingTwofoldEncryptedDocumentKeyForTerminalSubject.send(documentIdentifier)
         }
         
         return subject.eraseToAnyPublisher()
     }
     
-    func advertiseDocumentsToTerminal(_ documentsMetadata: [HealthEnclave_DocumentMetadata]) {
-        let streamingCall = client.advertiseDocumentsToTerminal(callOptions: callOptions())
-        _ = streamingCall.sendMessages(documentsMetadata)
-        _ = streamingCall.sendEnd()
+    func transferDocumentsToDevice(with identifier: HealthEnclave_DocumentIdentifier) -> AnyPublisher<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error> {
+        let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>()
+        
+        var dataLength = 0
+        _ = client.transferDocumentToDevice(identifier) { documentChunked in
+            documentStreamSubject.send(documentChunked)
+            if case let .chunk(chunk) = documentChunked.content {
+                dataLength += chunk.count
+            }
+        }
+        .status.map { status in
+            if status == .ok {
+                documentStreamSubject.send(completion: .finished)
+            } else {
+                documentStreamSubject.send(completion: .failure(status))
+            }
+        }
+        return documentStreamSubject.eraseToAnyPublisher()
+    }
+    
+    func transferEncryptedDocumentToTerminal(chunks: [HealthEnclave_TwofoldEncyptedDocumentChunked]) {
+        let transferEncryptedDocumentToTerminalCall = client.transferDocumentToTerminal()
+        
+        var chunkIterator = chunks.makeIterator()
+        self.group.next().scheduleRepeatedAsyncTask(initialDelay: .seconds(0), delay: .seconds(0)) { task in
+            if let chunk = chunkIterator.next() {
+                return transferEncryptedDocumentToTerminalCall.sendMessage(chunk)
+            } else {
+                task.cancel()
+                return transferEncryptedDocumentToTerminalCall.sendEnd()
+            }
+        }
+    }
+    
+    func transferEncryptedDocumentKeyToTerminal(_ encryptedKey: HealthEnclave_EncryptedDocumentKey,
+                                                with identifier: HealthEnclave_DocumentIdentifier) {
+        _ = client.transferEncryptedDocumentKeyToTerminal(HealthEnclave_EncryptedDocumentKeyWithId.with({
+            $0.id = identifier
+            $0.key = encryptedKey
+        }))
     }
     
     func transferTwofoldEncryptedDocumentKeyToTerminal(_ twofoldEncryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey,
@@ -130,19 +190,13 @@ class HealthEnclaveClient {
         _ = client.transferTwofoldEncryptedDocumentKeyToTerminal(HealthEnclave_TwofoldEncryptedDocumentKeyWithId.with({
             $0.id = identifier
             $0.key = twofoldEncryptedKey
-        }), callOptions: callOptions())
-    }
-    
-    private func callOptions() -> CallOptions {
-        return CallOptions(customMetadata: [
-            "deviceIdentifier": deviceIdentifier.hexEncodedString
-        ])
+        }))
     }
     
     func disconnect() {
         keepAliveTask?.cancel()
-        try! keepAliveCall?.sendEnd().wait()
-        try! client.channel.close().wait()
-        try! group.syncShutdownGracefully()
+        try? keepAliveCall?.sendEnd().wait()
+        try? client.channel.close().wait()
+        try? group.syncShutdownGracefully()
     }
 }

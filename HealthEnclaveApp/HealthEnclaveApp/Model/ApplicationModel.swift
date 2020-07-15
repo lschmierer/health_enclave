@@ -47,11 +47,14 @@ class ApplicationModel: ObservableObject {
     @Published public internal(set) var isConnecting = false
     @Published public internal(set) var isConnected = false
     @Published public internal(set) var isTransfering = true
+    @Published public internal(set) var connectionError: ApplicationError?
     
     private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
     private var documentsModel: DocumentsModel?
     private var documentStore: DocumentStore?
     private var client: HealthEnclaveClient?
+    
+    private var connectionSubscription: AnyCancellable?
     
     init() {
         if let hexDeviceIdentifier = UserDefaults.standard.object(forKey: "deviceIdentifier") as? String {
@@ -79,7 +82,7 @@ class ApplicationModel: ObservableObject {
     }
     
     
-    func connect(to jsonWifiConfiguration: String) -> AnyPublisher<Void, ApplicationError> {
+    func connect(to jsonWifiConfiguration: String) {
         self.isConnecting = true
         guard
             let wifiConfiguration = try? HealthEnclave_WifiConfiguration(jsonString: jsonWifiConfiguration),
@@ -88,12 +91,12 @@ class ApplicationModel: ObservableObject {
             os_log(.info, "Invalid WifiConfiguration: %@", jsonWifiConfiguration)
             self.isConnecting = false
             self.isConnected = false
-            return Fail(error: ApplicationError.wifiInvalidConfiguration)
-                .eraseToAnyPublisher()
+            self.connectionError = .wifiInvalidConfiguration
+            return
         }
         
         os_log(.info, "Connecting to Wifi: %@", String(reflecting: wifiConfiguration))
-        return Self.connectWifi(ssid: wifiConfiguration.ssid, passphrase: wifiConfiguration.password)
+        connectionSubscription = Self.connectWifi(ssid: wifiConfiguration.ssid, passphrase: wifiConfiguration.password)
             .flatMap { [weak self] () -> AnyPublisher<Void, ApplicationError> in
                 guard let self = self else { return Fail(error: .unknown).eraseToAnyPublisher() }
                 os_log(.info, "Creating client")
@@ -102,16 +105,17 @@ class ApplicationModel: ObservableObject {
                                          certificate: certificate)
             }
             .receive(on: DispatchQueue.main)
-            .map { [weak self] in
+            .sink(receiveCompletion: { [weak self] completion in
+                if case let .failure(error) = completion {
+                    self?.disconnect()
+                    self?.isConnected = false
+                    self?.isConnecting = false
+                    self?.connectionError = error
+                }
+            }, receiveValue: { [weak self] in
                 self?.isConnected = true
                 self?.isConnecting = false
-            }
-            .mapError { [weak self] error in
-                self?.isConnected = false
-                self?.isConnecting = false
-                return error
-            }
-            .eraseToAnyPublisher()
+            })
     }
     
     private static func connectWifi(ssid: String, passphrase: String) -> Future<Void, ApplicationError> {
@@ -156,7 +160,8 @@ class ApplicationModel: ObservableObject {
         return HealthEnclaveClient.create(ipAddress: ipAddress,
                                           port: port,
                                           certificate: certificate,
-                                          deviceIdentifier: self.deviceIdentifier)
+                                          deviceIdentifier: self.deviceIdentifier,
+                                          advertisedDocumentsMetadata: documentStore!.allDocumentsMetadata())
             .map { [weak self] client in
                 guard let self = self else { return }
                 self.client = client
@@ -170,6 +175,7 @@ class ApplicationModel: ObservableObject {
     func disconnect() {
         if(isConnected) {
             client?.disconnect()
+            client = nil
             isConnected = false
             os_log(.info, "Disconnected");
         }

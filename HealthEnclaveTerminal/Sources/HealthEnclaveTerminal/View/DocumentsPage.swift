@@ -59,7 +59,8 @@ class DocumentsPage: Box {
     
     init(model: DocumentsModel, openUrl openUrlCallback: @escaping OpenUrlCallback) {
         self.model = model
-        store = ListStore(.string, .string, .string)
+        store = ListStore(.string, .string, .string, .string)
+        store.set(sortColumnID: 2, order: .descending)
         treeView = TreeView(model: store)
         self.openUrlCallback = openUrlCallback
         super.init(orientation: .vertical, spacing: 0)
@@ -83,7 +84,7 @@ class DocumentsPage: Box {
                 self?.addDocumentToList(documentMetadata)
         }
         
-        _ = treeView.connectRowActivated(name: "row_activated") { _, path, _ in
+        _ = treeView.onRowActivated { _, path, _ in
             self.documentSelected(path)
         }
         
@@ -102,7 +103,7 @@ class DocumentsPage: Box {
         createdAtColumn.sortColumnID = 2
         _ = treeView.append(column: createdAtColumn)
         
-        let createdByColumn = TreeViewColumn(2)
+        let createdByColumn = TreeViewColumn(3)
         createdByColumn.title = "Created By"
         createdByColumn.minWidth = 200
         createdByColumn.resizable = true
@@ -130,7 +131,7 @@ class DocumentsPage: Box {
     
     private func addDocumentToList(_ documentMetadata: HealthEnclave_DocumentMetadata) {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-mm-dd hh:mm"
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
         store.append(asNextRow: treeIter,
                      Value(documentMetadata.id.uuid),
                      Value(documentMetadata.name),

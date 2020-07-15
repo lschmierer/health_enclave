@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		BD401E6E24B3BB46007A5565 /* KeyboardAdaptive.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD401E6D24B3BB45007A5565 /* KeyboardAdaptive.swift */; };
+		BD4B43A524BDF2DD00668B85 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = BD4B43A424BDF2DD00668B85 /* Logging */; };
 		BD6E21E82425098100033B0A /* CarBode in Frameworks */ = {isa = PBXBuildFile; productRef = BD6E21E72425098100033B0A /* CarBode */; };
 		BD6E21EC24251AED00033B0A /* ApplicationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E21EB24251AED00033B0A /* ApplicationModel.swift */; };
 		BD6E21F324251F8F00033B0A /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E21F224251F8F00033B0A /* ActivityIndicator.swift */; };
@@ -115,6 +116,7 @@
 				BD7182BF24278B34007013CE /* HealthEnclaveCommon in Frameworks */,
 				BD7182C224278DF7007013CE /* NetworkExtension.framework in Frameworks */,
 				BD6E21E82425098100033B0A /* CarBode in Frameworks */,
+				BD4B43A524BDF2DD00668B85 /* Logging in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,6 +271,7 @@
 				BD6E21E72425098100033B0A /* CarBode */,
 				BD7182BE24278B34007013CE /* HealthEnclaveCommon */,
 				BDCDBA8C24B34E1A005ADB16 /* BIP39 */,
+				BD4B43A424BDF2DD00668B85 /* Logging */,
 			);
 			productName = HealthEnclaveApp;
 			productReference = BDEE72F6240D782B00C73EB8 /* HealthEnclaveApp.app */;
@@ -317,7 +320,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1130;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Lukas Schmierer";
 				TargetAttributes = {
 					BDEE72F5240D782B00C73EB8 = {
@@ -345,6 +348,7 @@
 			packageReferences = (
 				BD6E21E62425098100033B0A /* XCRemoteSwiftPackageReference "CarBode-Barcode-Scanner-For-SwiftUI" */,
 				BDCDBA8B24B34E1A005ADB16 /* XCRemoteSwiftPackageReference "BIP39" */,
+				BD4B43A324BDF2DD00668B85 /* XCRemoteSwiftPackageReference "swift-log" */,
 			);
 			productRefGroup = BDEE72F7240D782B00C73EB8 /* Products */;
 			projectDirPath = "";
@@ -504,6 +508,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -564,6 +569,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -762,6 +768,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		BD4B43A324BDF2DD00668B85 /* XCRemoteSwiftPackageReference "swift-log" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-log";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.0;
+			};
+		};
 		BD6E21E62425098100033B0A /* XCRemoteSwiftPackageReference "CarBode-Barcode-Scanner-For-SwiftUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/heart/CarBode-Barcode-Scanner-For-SwiftUI.git";
@@ -781,6 +795,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		BD4B43A424BDF2DD00668B85 /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BD4B43A324BDF2DD00668B85 /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
+		};
 		BD6E21E72425098100033B0A /* CarBode */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BD6E21E62425098100033B0A /* XCRemoteSwiftPackageReference "CarBode-Barcode-Scanner-For-SwiftUI" */;

@@ -85,7 +85,9 @@ class DocumentsModel {
             using: sharedKey,
             authenticating: documentMetadata)
         
-        try documentStore.addNewEncryptedDocument(encryptedDocument, with: documentMetadata, encryptedWith: encryptedDocumentKey)
+        debugPrint("Document Length: " + String(reflecting: encryptedDocument.count))
+        
+        try documentStore.storeEncryptedDocument(encryptedDocument, with: documentMetadata, encryptedWith: encryptedDocumentKey)
         
         server.missingDocumentsForDeviceSubject.send(documentIdentifier)
         _documentAddedSubject.send(documentMetadata)
@@ -97,30 +99,43 @@ class DocumentsModel {
         }
         
         let retrieveDocumentSubject = PassthroughSubject<URL, Never>()
+        self.retrieveDocumentSubject = retrieveDocumentSubject
+        retrieveDocumentIdentifier = documentIdentifier
         
-        if let (documentMetadata, oneOrTwofoldEncryptedKey, documentData) = self.documentStore.encryptedDocument(with: documentIdentifier) {
-            switch oneOrTwofoldEncryptedKey.content {
-            case let .onefoldEncryptedKey(onefoldEncryptedKey):
-                retrieveDocumentSubject.send(try! self.documentUrl(for: documentData, with: documentMetadata, key: onefoldEncryptedKey))
-                retrieveDocumentSubject.send(completion: .finished)
-                break
-            case .twofoldEncryptedKey:
+        if let documentMetadata = self.documentStore.metadata(for: documentIdentifier),
+            let documentData = try! self.documentStore.encryptedDocument(with: documentIdentifier) {
+            
+            retrieveDocumentMetadata = documentMetadata
+            retrieveDocumentData = documentData
+            
+            if let encryptedDocumentKey = self.documentStore.encryptedDocumentKey(with: documentIdentifier) {
+                retrieveDocumentKey = encryptedDocumentKey
+                DispatchQueue.global().async { [weak self] in
+                    self?.resolveRetrieveDocument()
+                }
+            } else if try! self.documentStore.twofoldEncryptedDocumentKey(with: documentIdentifier) != nil {
+                retrieveDocumentKey = nil
                 server.missingEncryptedDocumentKeysForTerminalSubject.send(documentIdentifier)
-                self.retrieveDocumentSubject = retrieveDocumentSubject
-                retrieveDocumentIdentifier = documentIdentifier
-                retrieveDocumentData = documentData
-                retrieveDocumentMetadata = documentMetadata
-                break
-            default:
-                break
             }
         } else {
+            retrieveDocumentMetadata = nil
+            retrieveDocumentData = nil
             server.missingDocumentsForTerminalSubject.send(documentIdentifier)
             server.missingEncryptedDocumentKeysForTerminalSubject.send(documentIdentifier)
-            self.retrieveDocumentSubject = retrieveDocumentSubject
-            retrieveDocumentIdentifier = documentIdentifier
         }
+        
         return retrieveDocumentSubject.eraseToAnyPublisher()
+    }
+    
+    private func resolveRetrieveDocument() {
+        if let retrieveDocumentSubject = self.retrieveDocumentSubject,
+            let documentMetadata = self.retrieveDocumentMetadata,
+            let documentData = self.retrieveDocumentData,
+            let documentKey = self.retrieveDocumentKey {
+            self.retrieveDocumentSubject = nil
+            retrieveDocumentSubject.send(try! self.documentUrl(for: documentData, with: documentMetadata, key: documentKey))
+            retrieveDocumentSubject.send(completion: .finished)
+        }
     }
     
     private func documentUrl(for encryptedData: Data, with metadata: HealthEnclave_DocumentMetadata, key: HealthEnclave_EncryptedDocumentKey) throws -> URL {
@@ -129,7 +144,11 @@ class DocumentsModel {
         }
         
         let document = try TerminalCryptography.decryptDocument(encryptedData, with: key, using: sharedKey, authenticating: metadata)
-        let url = cacheDirectory.appendingPathComponent(metadata.id.uuid)
+        let tempFolder = cacheDirectory.appendingPathComponent(metadata.id.uuid, isDirectory: true)
+        if !FileManager.default.fileExists(atPath: tempFolder.path) {
+            try FileManager.default.createDirectory(at: tempFolder, withIntermediateDirectories: false, attributes: nil)
+        }
+        let url = tempFolder.appendingPathComponent(metadata.name)
         try document.write(to: url)
         return url
     }
@@ -151,12 +170,12 @@ class DocumentsModel {
             .receive(on: DispatchQueue.global())
             .sink() { [weak self] (identifier, documentStreamSubject) in
                 guard let self = self else { return }
-                try! self.documentStore.requestDocumentStream(for: identifier, on: documentStreamSubject)
+                try! self.documentStore.encryptedDocumentStream(for: identifier,
+                                                                on: documentStreamSubject)
         }
     }
     
     private func setupDocumentSubscription() {
-        // Store twofold encrypted key when received.
         documentSubscription = server.documentSubject
             .receive(on: DispatchQueue.global())
             .sink { [weak self] documentStream in
@@ -167,19 +186,21 @@ class DocumentsModel {
                 var data = Data()
                 
                 var documentStreamSubscription: AnyCancellable?
-                documentStreamSubscription = documentStream.sink(receiveCompletion: { completion in
+                documentStreamSubscription = documentStream
+                    .buffer(size: .max, prefetch: .keepFull, whenFull: .dropNewest)
+                    .sink(receiveCompletion: { completion in
                     if case .finished = completion,
                         let metadata = metadata,
                         let key = key {
-                        if self.retrieveDocumentSubject != nil {
+                        try! self.documentStore.storeTwofoldEncryptedDocument(data, with: metadata, encryptedWith: key)
+                        
+                        if self.retrieveDocumentSubject != nil,
+                            self.retrieveDocumentIdentifier == metadata.id {
                             self.retrieveDocumentMetadata = metadata
                             self.retrieveDocumentData = data
                             
                             self.resolveRetrieveDocument()
                         }
-                        
-                        
-                        try! self.documentStore.addTwofoldEncryptedDocument(data, with: metadata, encryptedWith: key)
                     }
                     self.documentStreamSubscriptions.remove(documentStreamSubscription!)
                 }, receiveValue: { chunk in
@@ -205,23 +226,14 @@ class DocumentsModel {
             .receive(on: DispatchQueue.global())
             .sink { [weak self] encryptedDocumentKeyWithId in
                 guard let self = self else { return }
-                if self.retrieveDocumentSubject != nil {
+                try! self.documentStore.storeEncryptedDocumentKey(encryptedDocumentKeyWithId.key,
+                                                                  for: encryptedDocumentKeyWithId.id)
+                
+                if self.retrieveDocumentSubject != nil,
+                    self.retrieveDocumentIdentifier == encryptedDocumentKeyWithId.id {
                     self.retrieveDocumentKey = encryptedDocumentKeyWithId.key
+                    self.resolveRetrieveDocument()
                 }
-                self.resolveRetrieveDocument()
-                try! self.documentStore.addEncryptedDocumentKey(encryptedDocumentKeyWithId.key,
-                                                                for: encryptedDocumentKeyWithId.id)
-        }
-    }
-    
-    private func resolveRetrieveDocument() {
-        if let retrieveDocumentSubject = self.retrieveDocumentSubject,
-            let documentMetadata = self.retrieveDocumentMetadata,
-            let documentData = self.retrieveDocumentData,
-            let documentKey = self.retrieveDocumentKey {
-            self.retrieveDocumentSubject = nil
-            retrieveDocumentSubject.send(try! self.documentUrl(for: documentData, with: documentMetadata, key: documentKey))
-            retrieveDocumentSubject.send(completion: .finished)
         }
     }
     
@@ -231,8 +243,8 @@ class DocumentsModel {
             .receive(on: DispatchQueue.global())
             .sink { [weak self] twofoldEncryptedDocumentKeyWithId in
                 guard let self = self else { return }
-                try! self.documentStore.addTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
-                                                                       for: twofoldEncryptedDocumentKeyWithId.id)
+                try! self.documentStore.storeTwofoldEncryptedDocumentKey(twofoldEncryptedDocumentKeyWithId.key,
+                                                                         for: twofoldEncryptedDocumentKeyWithId.id)
         }
     }
 }

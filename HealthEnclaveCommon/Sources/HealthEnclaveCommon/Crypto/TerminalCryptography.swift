@@ -33,8 +33,8 @@ public enum TerminalCryptography {
         -> Data {
             let metadata = try metadata.serializedData()
             let documentKey = try CryptoPrimitives.SymmetricKey(data: try CryptoPrimitives.decryptSymmetric(documentKey.data,
-                                                                                                            using: sharedKey,
-                                                                                                            authenticating: metadata))
+                                                                                                             using: sharedKey,
+                                                                                                             authenticating: metadata))
             return try CryptoPrimitives.decryptSymmetric(encryptedDocument, using: documentKey, authenticating: metadata)
     }
 }

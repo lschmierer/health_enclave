@@ -2,24 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "BIP39",
-        "repositoryURL": "https://github.com/pengpengliu/BIP39",
-        "state": {
-          "branch": null,
-          "revision": "e79bd90275e50643cf8f97208ffa536d0def3ec7",
-          "version": "1.0.1"
-        }
-      },
-      {
-        "package": "CarBode",
-        "repositoryURL": "https://github.com/heart/CarBode-Barcode-Scanner-For-SwiftUI.git",
-        "state": {
-          "branch": null,
-          "revision": "69aaaea54d2759b9f829161ece8d88136d50fca9",
-          "version": "1.4.3"
-        }
-      },
-      {
         "package": "grpc-swift",
         "repositoryURL": "https://github.com/grpc/grpc-swift.git",
         "state": {

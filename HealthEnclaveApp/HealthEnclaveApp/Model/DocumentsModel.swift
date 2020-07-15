@@ -13,33 +13,37 @@ import HealthEnclaveCommon
 
 class DocumentsModel {
     private let deviceKey: DeviceCryptography.DeviceKey
-    private let documentStore: DocumentStore
-    private let client: HealthEnclaveClient
+    private weak var documentStore: DocumentStore?
+    private weak var client: HealthEnclaveClient?
     
-    private var documentReceivedSubscription: Cancellable?
+    private var missingDocumentsForTerminal = [HealthEnclave_DocumentIdentifier]()
+    private var transferringToTerminal = false
+    private var transferToTerminalSubscription: Cancellable?
+    
+    private var missingDocumentsForDeviceSubscription: Cancellable?
+    private var missingDocumentsForTerminalSubscription: Cancellable?
+    private var missingEncryptedDocumentKeyForTermincalSubscription: Cancellable?
+    private var missingTwofoldEncryptedDocumentKeyForTermincalSubscription: Cancellable?
     
     init(deviceKey: DeviceCryptography.DeviceKey, documentStore: DocumentStore, client: HealthEnclaveClient) {
         self.deviceKey = deviceKey
         self.documentStore = documentStore
         self.client = client
         
-        advertiseDocumentsToTerminal()
-        setupDocumentReceivedSubscription()
+        setupMissingDocumentsForDeviceSubscription()
+        setupMissingDocumentsForTerminalSubscription()
+        setupMissingEncryptedDocumentKeyForTerminalSubscription()
     }
     
-    private func advertiseDocumentsToTerminal() {
-        client.advertiseDocumentsToTerminal(documentStore.allDocumentsMetadata())
-    }
-    
-    private func setupDocumentReceivedSubscription() {
-        documentReceivedSubscription = client.documentReceivedSubject
+    private func setupMissingDocumentsForDeviceSubscription() {
+        missingDocumentsForDeviceSubscription = client?.missingDocumentsForDeviceSubject
             .receive(on: DispatchQueue.global())
-            .sink(receiveValue: { [weak self] documentStreamSubject in
-                guard let self = self else { return }
+            .sink(receiveValue: { [weak self] documentIdentifier in
+                guard let self = self, let client = self.client, let documentStore = self.documentStore else { return }
+                
                 var metadata: HealthEnclave_DocumentMetadata?
                 
-                // Encrypt onefold encrypted keys
-                let twofoldEncryptedDocumentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> = documentStreamSubject
+                let twofoldEncryptedDocumentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> = client.transferDocumentsToDevice(with: documentIdentifier)
                     .flatMap { chunk -> AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> in
                         switch chunk.content {
                         case let .metadata(m):
@@ -58,7 +62,7 @@ class DocumentsModel {
                                 default: break
                                 }
                                 
-                                self.client.transferTwofoldEncryptedDocumentKeyToTerminal(k!, with: metadata.id)
+                                client.transferTwofoldEncryptedDocumentKeyToTerminal(k!, with: metadata.id)
                                 
                                 return Publishers.Sequence(sequence: [
                                     HealthEnclave_TwofoldEncyptedDocumentChunked.with {
@@ -79,9 +83,58 @@ class DocumentsModel {
                         }
                         return Empty().eraseToAnyPublisher()
                     }
+                    .buffer(size: .max, prefetch: .keepFull, whenFull: .dropNewest)
                     .eraseToAnyPublisher()
                 
-                self.documentStore.storeDocument(from: twofoldEncryptedDocumentStreamSubject)
+                documentStore.storeDocument(from: twofoldEncryptedDocumentStreamSubject)
+            })
+    }
+    
+    private func setupMissingDocumentsForTerminalSubscription() {
+        missingDocumentsForTerminalSubscription = client?.missingDocumentsForTerminalSubject
+            .receive(on: DispatchQueue.global())
+            .sink(receiveValue: { [weak self] documentIdentifier in
+                guard let self = self else { return }
+                
+                if let index = self.missingDocumentsForTerminal.firstIndex(of: documentIdentifier) {
+                    self.missingDocumentsForTerminal.remove(at: index)
+                }
+                self.missingDocumentsForTerminal.append(documentIdentifier)
+                
+                self.transferToTerminal()
+            })
+    }
+    
+    private func transferToTerminal() {
+        guard let documentStore = documentStore,
+              !transferringToTerminal else { return }
+        
+        if let documentIdentifier = missingDocumentsForTerminal.popLast() {
+            transferringToTerminal = true
+            
+            self.client?.transferEncryptedDocumentToTerminal(chunks: try! documentStore.encryptedDocumentChunked(for: documentIdentifier))
+            
+            self.transferringToTerminal = false
+            self.transferToTerminal()
+        }
+    }
+    
+    private func setupMissingEncryptedDocumentKeyForTerminalSubscription() {
+        guard let documentStore = documentStore else { return }
+        
+        missingEncryptedDocumentKeyForTermincalSubscription = client?.missingEncryptedDocumentKeyForTerminalSubject
+            .receive(on: DispatchQueue.global())
+            .sink(receiveValue: { [weak self] documentIdentifier in
+                guard let self = self else { return }
+                // TODO: ask for permission
+                if let twofoldEncyptedKey = try! documentStore.twofoldEncryptedDocumentKey(with: documentIdentifier),
+                   let metadata = documentStore.metadata(for: documentIdentifier) {
+                    let encryptedKey = try! DeviceCryptography.decryptTwofoldEncryptedDocumentKey(twofoldEncyptedKey, using: self.deviceKey, authenticating: metadata)
+                    
+                    self.client?.transferEncryptedDocumentKeyToTerminal(encryptedKey, with: documentIdentifier)
+                } else {
+                    os_log(.error, "Can not find key for document with id: %@", documentIdentifier.uuid)
+                }
             })
     }
 }

@@ -8,12 +8,19 @@
 
 import os
 import UIKit
+import Logging
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {    
     let model = ApplicationModel()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        LoggingSystem.bootstrap { label in
+            var logHandler = StreamLogHandler.standardOutput(label: label)
+            logHandler.logLevel = .debug
+            return logHandler
+        }
+        
         UserDefaults.standard.register(defaults: [
             "deviceKeySet": false,
         ])

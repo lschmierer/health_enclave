@@ -74,4 +74,14 @@ public enum DeviceCryptography {
                                                                 authenticating: metadata)
             }
     }
+    
+    public static func decryptTwofoldEncryptedDocumentKey(_ documentKey: HealthEnclave_TwofoldEncryptedDocumentKey,
+                                                          using deviceKey: DeviceKey,
+                                                          authenticating metadata: HealthEnclave_DocumentMetadata) throws
+        -> HealthEnclave_EncryptedDocumentKey {
+            let metadata = try metadata.serializedData()
+            return try HealthEnclave_EncryptedDocumentKey(serializedData: try CryptoPrimitives.decryptSymmetric(documentKey.data,
+                                                                                                                using: deviceKey,
+                                                                                                                authenticating: metadata))
+    }
 }

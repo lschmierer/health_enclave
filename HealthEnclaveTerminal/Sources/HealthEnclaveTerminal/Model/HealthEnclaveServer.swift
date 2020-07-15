@@ -104,7 +104,7 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
     private var lastKeepAlive: Date!
     
     init(ipAddress: String, port: Int, certificateChain: [NIOSSLCertificate], privateKey: NIOSSLPrivateKey) {
-        group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+        group = PlatformSupport.makeEventLoopGroup(loopCount: System.coreCount)
         // Start the server and print its address once it has started.
         let server = Server.secure(group: group, certificateChain: certificateChain, privateKey: privateKey)
             .withServiceProviders([self])
