@@ -17,6 +17,7 @@ enum ApplicationError: Error {
     case wifiInvalidConfiguration
     case wifi(Error?)
     case connection(Error?)
+    case connectionLost
     case unknown
 }
 
@@ -34,7 +35,9 @@ extension ApplicationError: LocalizedError {
             if let errorDescription = error?.localizedDescription {
                 return errorDescription.prefix(1).capitalized + errorDescription.dropFirst()
             }
-            return "Connection Error"
+            return "Unknwon Connection Error"
+        case .connectionLost:
+            return "Connection Lost"
         case .unknown:
             return "Unknown"
         }
@@ -49,8 +52,8 @@ class ApplicationModel: ObservableObject {
     @Published public internal(set) var isTransfering = true
     @Published public internal(set) var connectionError: ApplicationError?
     
+    public internal(set) var documentsModel: DocumentsModel?
     private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
-    private var documentsModel: DocumentsModel?
     private var documentStore: DocumentStore?
     private var client: HealthEnclaveClient?
     
@@ -166,8 +169,8 @@ class ApplicationModel: ObservableObject {
                 guard let self = self else { return }
                 self.client = client
                 self.documentsModel = DocumentsModel(deviceKey: self.deviceKey!,
-                                                    documentStore: self.documentStore!,
-                                                    client: client)
+                                                     documentStore: self.documentStore!,
+                                                     client: client)
             }
             .eraseToAnyPublisher()
     }

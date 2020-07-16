@@ -56,6 +56,10 @@ service HealthEnclave {
     // Transfer a onefold encrypted key to the terminal.
     rpc TransferEncryptedDocumentKeyToTerminal(EncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
     
+    // Transfer a onefold encrypted key not to the terminal.
+    // (And explicitly do not give access to document.)
+    rpc TransferEncryptedDocumentKeyNotToTerminal(DocumentIdentifier) returns (google.protobuf.Empty);
+    
     // Transfer a twofold encrypted key to the terminal.
     rpc TransferTwofoldEncryptedDocumentKeyToTerminal(TwofoldEncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
 }

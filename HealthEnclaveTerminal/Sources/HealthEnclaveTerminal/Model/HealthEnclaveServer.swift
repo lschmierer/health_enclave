@@ -92,6 +92,11 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         get { return _encryptedDocumentKeySubject.eraseToAnyPublisher() }
     }
     
+    private let _encryptedDocumentKeyNotSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
+    var encryptedDocumentKeyNotSubject: AnyPublisher<HealthEnclave_DocumentIdentifier, Never> {
+        get { return _encryptedDocumentKeyNotSubject.eraseToAnyPublisher() }
+    }
+    
     private let _twofoldEncryptedDocumentKeySubject = PassthroughSubject<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, Never>()
     var twofoldEncryptedDocumentKeySubject: AnyPublisher<HealthEnclave_TwofoldEncryptedDocumentKeyWithId, Never> {
         get { return _twofoldEncryptedDocumentKeySubject.eraseToAnyPublisher() }
@@ -303,6 +308,13 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
                 self?._encryptedDocumentKeySubject.send(request)
                 return Google_Protobuf_Empty()
             }
+    }
+    
+    func transferEncryptedDocumentKeyNotToTerminal(request: HealthEnclave_DocumentIdentifier, context: StatusOnlyCallContext) -> EventLoopFuture<Google_Protobuf_Empty> {
+        return checkClient(context).map { [weak self] in
+            self?._encryptedDocumentKeyNotSubject.send(request)
+            return Google_Protobuf_Empty()
+        }
     }
     
     func transferTwofoldEncryptedDocumentKeyToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId,

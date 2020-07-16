@@ -52,6 +52,8 @@ class DocumentsPage: Box {
     private let treeIter = TreeIter()
     private let store: ListStore
     
+    private let spinner: Spinner
+    
     private let openUrlCallback: OpenUrlCallback
     
     private var documentAddedSubscription: Cancellable?
@@ -62,6 +64,7 @@ class DocumentsPage: Box {
         store = ListStore(.string, .string, .string, .string)
         store.set(sortColumnID: 2, order: .descending)
         treeView = TreeView(model: store)
+        spinner = Spinner()
         self.openUrlCallback = openUrlCallback
         super.init(orientation: .vertical, spacing: 0)
         
@@ -73,6 +76,16 @@ class DocumentsPage: Box {
         addButton.tooltipText = "Add Document"
         addButton.connect(ToolButtonSignalName.clicked, handler: addNewDocument)
         toolbar.add(addButton)
+        
+        let separator = SeparatorToolItem()
+        separator.draw = false
+        toolbar.add(separator)
+        toolbar.childSetProperty(child: separator, propertyName: "expand", value: Value(true))
+        
+        let spinnerItem = ToolItem()
+        spinnerItem.marginEnd = 10
+        spinnerItem.add(widget: spinner)
+        toolbar.add(spinnerItem)
         
         for documentMetadata in model.documentsMetadata {
             addDocumentToList(documentMetadata)
@@ -149,9 +162,19 @@ class DocumentsPage: Box {
     }
     
     private func openDocument(_ documentIdentifier: HealthEnclave_DocumentIdentifier) {
+        spinner.start()
         openDocumentSubscription = try! model.retrieveDocument(documentIdentifier)
             .receive(on: DispatchQueue.main)
-            .sink(receiveValue: { [weak self] documentUrl in
+            .sink(receiveCompletion: { [weak self] completion in
+                self?.spinner.stop()
+                if case let .failure(error) = completion,
+                    case .noDocumentPermission = error {
+                    let dialog = MessageDialog(flags: [], type: .error, buttons: .ok, markup: "No Permission", secondaryMarkup: "Patient did not give permission to access this document.")
+                    dialog.set(position: .center)
+                    _ = dialog.run()
+                    dialog.destroy()
+                }
+            }, receiveValue: { [weak self] documentUrl in
                 self?.openUrlCallback(documentUrl)
             })
     }

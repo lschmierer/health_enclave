@@ -16,7 +16,7 @@ class LoadingPage: Box {
         spinner.start()
         
         setValign(align: .center)
-        add(widget: spinner)
+        add(spinner)
         showAll()
     }
 }

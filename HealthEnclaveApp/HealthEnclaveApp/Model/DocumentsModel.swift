@@ -12,6 +12,11 @@ import Combine
 import HealthEnclaveCommon
 
 class DocumentsModel {
+    private let _accessDocumentRequests = PassthroughSubject<HealthEnclave_DocumentMetadata, Never>()
+    var accessDocumentRequests: AnyPublisher<HealthEnclave_DocumentMetadata, Never> {
+        get { return _accessDocumentRequests.eraseToAnyPublisher() }
+    }
+    
     private let deviceKey: DeviceCryptography.DeviceKey
     private weak var documentStore: DocumentStore?
     private weak var client: HealthEnclaveClient?
@@ -33,6 +38,21 @@ class DocumentsModel {
         setupMissingDocumentsForDeviceSubscription()
         setupMissingDocumentsForTerminalSubscription()
         setupMissingEncryptedDocumentKeyForTerminalSubscription()
+    }
+    
+    func grantAccess(to documentIdentifier: HealthEnclave_DocumentIdentifier) {
+        if let twofoldEncyptedKey = try! documentStore?.twofoldEncryptedDocumentKey(with: documentIdentifier),
+           let documentMetadata = documentStore?.metadata(for: documentIdentifier) {
+            let encryptedKey = try! DeviceCryptography.decryptTwofoldEncryptedDocumentKey(twofoldEncyptedKey, using: self.deviceKey, authenticating: documentMetadata)
+            
+            self.client?.transferEncryptedDocumentKeyToTerminal(encryptedKey, with: documentIdentifier)
+        } else {
+            os_log(.error, "Can not find key for document with id: %@", documentIdentifier.uuid)
+        }
+    }
+    
+    func grantAccessNot(to documentIdentifier: HealthEnclave_DocumentIdentifier) {
+        self.client?.transferEncryptedDocumentKeyNotToTerminal(for: documentIdentifier)
     }
     
     private func setupMissingDocumentsForDeviceSubscription() {
@@ -120,18 +140,13 @@ class DocumentsModel {
     }
     
     private func setupMissingEncryptedDocumentKeyForTerminalSubscription() {
-        guard let documentStore = documentStore else { return }
-        
         missingEncryptedDocumentKeyForTermincalSubscription = client?.missingEncryptedDocumentKeyForTerminalSubject
             .receive(on: DispatchQueue.global())
             .sink(receiveValue: { [weak self] documentIdentifier in
-                guard let self = self else { return }
-                // TODO: ask for permission
-                if let twofoldEncyptedKey = try! documentStore.twofoldEncryptedDocumentKey(with: documentIdentifier),
-                   let metadata = documentStore.metadata(for: documentIdentifier) {
-                    let encryptedKey = try! DeviceCryptography.decryptTwofoldEncryptedDocumentKey(twofoldEncyptedKey, using: self.deviceKey, authenticating: metadata)
-                    
-                    self.client?.transferEncryptedDocumentKeyToTerminal(encryptedKey, with: documentIdentifier)
+                guard let self = self, let documentStore = self.documentStore else { return }
+                
+                if let documentMetadata = documentStore.metadata(for: documentIdentifier) {
+                    self._accessDocumentRequests.send(documentMetadata)
                 } else {
                     os_log(.error, "Can not find key for document with id: %@", documentIdentifier.uuid)
                 }

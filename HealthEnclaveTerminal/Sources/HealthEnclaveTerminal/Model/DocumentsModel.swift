@@ -35,7 +35,7 @@ class DocumentsModel {
         get { return _documentAddedSubject.eraseToAnyPublisher() }
     }
     
-    private var retrieveDocumentSubject: PassthroughSubject<URL, Never>?
+    private var retrieveDocumentSubject: PassthroughSubject<URL, ApplicationError>?
     private var retrieveDocumentIdentifier: HealthEnclave_DocumentIdentifier?
     private var retrieveDocumentMetadata: HealthEnclave_DocumentMetadata?
     private var retrieveDocumentKey: HealthEnclave_EncryptedDocumentKey?
@@ -46,6 +46,7 @@ class DocumentsModel {
     private var documentSubscription: Cancellable?
     private var documentStreamSubscriptions = Set<AnyCancellable>()
     private var encryptedDocumentKeySubscription: Cancellable?
+    private var encryptedDocumentKeyNotSubscription: Cancellable?
     private var twofoldEncryptedDocumentKeySubscription: Cancellable?
     
     init(documentStore: DocumentStore, server: HealthEnclaveServer) {
@@ -56,6 +57,7 @@ class DocumentsModel {
         setupTransferDocumentToDeviceRequestSubscription()
         setupDocumentSubscription()
         setupEncryptedDocumentKeySubscription()
+        setupEncryptedDocumentKeyNotSubscription()
         setupTwofoldEncryptedDocumentKeySubscription()
     }
     
@@ -93,12 +95,12 @@ class DocumentsModel {
         _documentAddedSubject.send(documentMetadata)
     }
     
-    func retrieveDocument(_ documentIdentifier: HealthEnclave_DocumentIdentifier) throws -> AnyPublisher<URL, Never> {
+    func retrieveDocument(_ documentIdentifier: HealthEnclave_DocumentIdentifier) throws -> AnyPublisher<URL, ApplicationError> {
         if let retrieveDocumentSubject = retrieveDocumentSubject {
             retrieveDocumentSubject.send(completion: .finished)
         }
         
-        let retrieveDocumentSubject = PassthroughSubject<URL, Never>()
+        let retrieveDocumentSubject = PassthroughSubject<URL, ApplicationError>()
         self.retrieveDocumentSubject = retrieveDocumentSubject
         retrieveDocumentIdentifier = documentIdentifier
         
@@ -233,6 +235,20 @@ class DocumentsModel {
                     self.retrieveDocumentIdentifier == encryptedDocumentKeyWithId.id {
                     self.retrieveDocumentKey = encryptedDocumentKeyWithId.key
                     self.resolveRetrieveDocument()
+                }
+        }
+    }
+    
+    private func setupEncryptedDocumentKeyNotSubscription() {
+        // Store twofold encrypted key when received.
+        encryptedDocumentKeyNotSubscription = server.encryptedDocumentKeyNotSubject
+            .receive(on: DispatchQueue.global())
+            .sink { [weak self] documentIdentifier in
+                guard let self = self else { return }
+                if let retrieveDocumentSubject = self.retrieveDocumentSubject,
+                    self.retrieveDocumentIdentifier == documentIdentifier {
+                    self.retrieveDocumentSubject = nil
+                    retrieveDocumentSubject.send(completion: .failure(.noDocumentPermission))
                 }
         }
     }

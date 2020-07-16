@@ -26,6 +26,7 @@ enum ApplicationError: Error {
     case notConnected
     case invalidSharedKey
     case missingSharedKey
+    case noDocumentPermission
 }
 
 class ApplicationModel {

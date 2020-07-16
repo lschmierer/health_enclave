@@ -77,6 +77,11 @@ public protocol HealthEnclave_HealthEnclaveClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<HealthEnclave_EncryptedDocumentKeyWithId, SwiftProtobuf.Google_Protobuf_Empty>
 
+  func transferEncryptedDocumentKeyNotToTerminal(
+    _ request: HealthEnclave_DocumentIdentifier,
+    callOptions: CallOptions?
+  ) -> UnaryCall<HealthEnclave_DocumentIdentifier, SwiftProtobuf.Google_Protobuf_Empty>
+
   func transferTwofoldEncryptedDocumentKeyToTerminal(
     _ request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId,
     callOptions: CallOptions?
@@ -271,6 +276,24 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
     )
   }
 
+  /// Transfer a onefold encrypted key not to the terminal.
+  /// (And explicitly do not give access to document.)
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to TransferEncryptedDocumentKeyNotToTerminal.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func transferEncryptedDocumentKeyNotToTerminal(
+    _ request: HealthEnclave_DocumentIdentifier,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<HealthEnclave_DocumentIdentifier, SwiftProtobuf.Google_Protobuf_Empty> {
+    return self.makeUnaryCall(
+      path: "/health_enclave.HealthEnclave/TransferEncryptedDocumentKeyNotToTerminal",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions
+    )
+  }
+
   /// Transfer a twofold encrypted key to the terminal.
   ///
   /// - Parameters:
@@ -338,6 +361,9 @@ public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   func transferDocumentToTerminal(context: UnaryResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_TwofoldEncyptedDocumentChunked>) -> Void>
   /// Transfer a onefold encrypted key to the terminal.
   func transferEncryptedDocumentKeyToTerminal(request: HealthEnclave_EncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
+  /// Transfer a onefold encrypted key not to the terminal.
+  /// (And explicitly do not give access to document.)
+  func transferEncryptedDocumentKeyNotToTerminal(request: HealthEnclave_DocumentIdentifier, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
   /// Transfer a twofold encrypted key to the terminal.
   func transferTwofoldEncryptedDocumentKeyToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
 }
@@ -350,64 +376,71 @@ extension HealthEnclave_HealthEnclaveProvider {
   public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
     case "KeepAlive":
-      return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeBidirectionalStreaming(callHandlerContext: callHandlerContext) { context in
         return self.keepAlive(context: context)
       }
 
     case "AdvertiseDocumentsToTerminal":
-      return ClientStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeClientStreaming(callHandlerContext: callHandlerContext) { context in
         return self.advertiseDocumentsToTerminal(context: context)
       }
 
     case "MissingDocumentsForDevice":
-      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.missingDocumentsForDevice(request: request, context: context)
         }
       }
 
     case "MissingDocumentsForTerminal":
-      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.missingDocumentsForTerminal(request: request, context: context)
         }
       }
 
     case "MissingEncryptedDocumentKeysForTerminal":
-      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.missingEncryptedDocumentKeysForTerminal(request: request, context: context)
         }
       }
 
     case "MissingTwofoldEncryptedDocumentKeysForTerminal":
-      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.missingTwofoldEncryptedDocumentKeysForTerminal(request: request, context: context)
         }
       }
 
     case "TransferDocumentToDevice":
-      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.transferDocumentToDevice(request: request, context: context)
         }
       }
 
     case "TransferDocumentToTerminal":
-      return ClientStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeClientStreaming(callHandlerContext: callHandlerContext) { context in
         return self.transferDocumentToTerminal(context: context)
       }
 
     case "TransferEncryptedDocumentKeyToTerminal":
-      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.transferEncryptedDocumentKeyToTerminal(request: request, context: context)
         }
       }
 
+    case "TransferEncryptedDocumentKeyNotToTerminal":
+      return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
+        return { request in
+          self.transferEncryptedDocumentKeyNotToTerminal(request: request, context: context)
+        }
+      }
+
     case "TransferTwofoldEncryptedDocumentKeyToTerminal":
-      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.transferTwofoldEncryptedDocumentKeyToTerminal(request: request, context: context)
         }
@@ -418,15 +451,3 @@ extension HealthEnclave_HealthEnclaveProvider {
   }
 }
 
-
-// Provides conformance to `GRPCPayload`
-extension HealthEnclave_DocumentIdentifier: GRPCProtobufPayload {}
-extension HealthEnclave_DocumentMetadata: GRPCProtobufPayload {}
-extension HealthEnclave_EncryptedDocumentKey: GRPCProtobufPayload {}
-extension HealthEnclave_EncryptedDocumentKeyWithId: GRPCProtobufPayload {}
-extension HealthEnclave_TwofoldEncryptedDocumentKey: GRPCProtobufPayload {}
-extension HealthEnclave_TwofoldEncryptedDocumentKeyWithId: GRPCProtobufPayload {}
-extension HealthEnclave_OneOrTwofoldEncyptedDocumentKey: GRPCProtobufPayload {}
-extension HealthEnclave_TwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
-extension HealthEnclave_OneOrTwofoldEncyptedDocumentChunked: GRPCProtobufPayload {}
-extension HealthEnclave_WifiConfiguration: GRPCProtobufPayload {}

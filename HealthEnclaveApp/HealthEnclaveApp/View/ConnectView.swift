@@ -8,19 +8,22 @@
 import os
 import Combine
 import SwiftUI
-
 import CarBode
+
+import HealthEnclaveCommon
 
 struct ConnectView: View {
     @EnvironmentObject private var model: ApplicationModel
     @State private var lastQrData: String?
     
-    @State private var showAlert = false
-    @State private var alertTitle: String?
-    @State private var alertMessage: String?
+    @State private var showConnectionError = false
+    @State private var connectionError: ApplicationError?
+    
+    @State private var askAccessPermission = false
+    @State private var askAccessDocumentMetadata: HealthEnclave_DocumentMetadata?
     
     var body: some View {
-        ZStack {
+        var stack = AnyView(ZStack {
             Color.black
             if model.isConnected {
                 VStack(spacing: 40) {
@@ -77,16 +80,36 @@ struct ConnectView: View {
             }
         }
         .edgesIgnoringSafeArea(.all)
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text(alertTitle ?? ""), message: Text(alertMessage ?? ""))
+        .alert(isPresented: $showConnectionError) {
+            Alert(title: Text("Connection Error"), message: Text(connectionError!.localizedDescription))
+        }
+        .alert(isPresented: $askAccessPermission) {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+            return Alert(title: Text("Terminal wants to access \(askAccessDocumentMetadata!.name)"),
+                         message: Text("\(askAccessDocumentMetadata!.name)\n\(dateFormatter.string(from: askAccessDocumentMetadata!.createdAt.date))\n\(askAccessDocumentMetadata!.createdBy)"),
+                         primaryButton: .default(Text("Allow")) {
+                            model.documentsModel?.grantAccess(to: askAccessDocumentMetadata!.id)
+                         },
+                         secondaryButton: .cancel(Text("Don't allow")) {
+                            model.documentsModel?.grantAccessNot(to: askAccessDocumentMetadata!.id)
+                         })
         }
         .onReceive(model.$connectionError, perform: { error in
             if let error = error {
-                self.showAlert = true
-                self.alertTitle = "Connection error"
-                self.alertMessage = error.localizedDescription
+                showConnectionError = true
+                self.connectionError = error
             }
-        })
+        }))
+        
+        if let accessDocumentRequests = model.documentsModel?.accessDocumentRequests {
+            stack = AnyView(stack.onReceive(accessDocumentRequests) { documentMetadata in
+                self.askAccessPermission = true
+                self.askAccessDocumentMetadata = documentMetadata
+            })
+        }
+        
+        return stack
     }
 }
 

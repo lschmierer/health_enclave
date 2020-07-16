@@ -99,10 +99,17 @@ class HealthEnclaveClient {
             guard case let .success(status) = result, status.code == .ok else {
                 switch result {
                 case .success(let status):
-                    let error = ApplicationError.connection(status.message)
-                    subject.send(completion: .failure(error))
+                    if sentToSubject {
+                        subject.send(completion: .failure(.connectionLost))
+                    } else {
+                        subject.send(completion: .failure(ApplicationError.connection(status.message)))
+                    }
                 case .failure(let error):
-                    subject.send(completion: .failure(.connection(error)))
+                    if sentToSubject {
+                        subject.send(completion: .failure(.connectionLost))
+                    } else {
+                        subject.send(completion: .failure(.connection(error)))
+                    }
                 }
                 return
             }
@@ -118,7 +125,7 @@ class HealthEnclaveClient {
                 } else {
                     task.cancel()
                 }
-        })
+            })
         
         let streamingCall = client.advertiseDocumentsToTerminal()
         _ = streamingCall.sendMessages(advertisedDocumentsMetadata)
@@ -183,6 +190,10 @@ class HealthEnclaveClient {
             $0.id = identifier
             $0.key = encryptedKey
         }))
+    }
+    
+    func transferEncryptedDocumentKeyNotToTerminal(for identifier: HealthEnclave_DocumentIdentifier) {
+        _ = client.transferEncryptedDocumentKeyNotToTerminal(identifier)
     }
     
     func transferTwofoldEncryptedDocumentKeyToTerminal(_ twofoldEncryptedKey: HealthEnclave_TwofoldEncryptedDocumentKey,
