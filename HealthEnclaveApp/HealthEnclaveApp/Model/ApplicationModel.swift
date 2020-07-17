@@ -63,6 +63,7 @@ class ApplicationModel: ObservableObject {
         if UserDefaults.standard.bool(forKey: "deviceKeySet") {
             deviceKey = KeyChain.load()
             deviceIdentifier = DeviceCryptography.DeviceIdentifier(from: deviceKey!)
+            documentStore = try! DocumentStore(for: self.deviceIdentifier!)
         }
     }
     
@@ -81,6 +82,7 @@ class ApplicationModel: ObservableObject {
         UserDefaults.standard.set(true, forKey: "deviceKeySet")
         
         deviceIdentifier = DeviceCryptography.DeviceIdentifier(from: deviceKey!)
+        documentStore = try! DocumentStore(for: self.deviceIdentifier!)
     }
     
     
@@ -158,7 +160,6 @@ class ApplicationModel: ObservableObject {
     private func createClient(ipAddress: String,
                               port: Int,
                               certificate: NIOSSLCertificate) -> AnyPublisher<Void, ApplicationError> {
-        documentStore = try! DocumentStore(for: self.deviceIdentifier!)
         return HealthEnclaveClient.create(ipAddress: ipAddress,
                                           port: port,
                                           certificate: certificate,
@@ -171,6 +172,14 @@ class ApplicationModel: ObservableObject {
                                                      client: client)
             }
             .eraseToAnyPublisher()
+    }
+    
+    func localDocuments() -> [HealthEnclave_DocumentMetadata] {
+        self.documentStore?.allDocumentsMetadata() ?? []
+    }
+    
+    func deleteLocalDocument(with identifier: HealthEnclave_DocumentIdentifier) {
+        try? self.documentStore?.delete(with: identifier)
     }
     
     func disconnect() {

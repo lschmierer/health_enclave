@@ -21,7 +21,6 @@ struct ContentView: View {
                     .navigationBarTitle("Setup")
             } else {
                 ConnectView()
-                    .navigationBarHidden(true)
             }
         }
     }

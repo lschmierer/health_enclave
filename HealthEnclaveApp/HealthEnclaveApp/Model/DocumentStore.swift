@@ -62,7 +62,7 @@ class DocumentStore {
         try readMetadata()
     }
     
-    func storeDocument(from documentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error>) {
+    func store(from documentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error>) {
         var metadata: HealthEnclave_DocumentMetadata?
         var key: HealthEnclave_TwofoldEncryptedDocumentKey?
         var data = Data()
@@ -111,6 +111,13 @@ class DocumentStore {
                 }
             })
         documentStreamSubscriptions.insert(documentStreamSubscription!)
+    }
+    
+    func delete(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        documentsMetadata[identifier] = nil
+        try deleteDocument(with: identifier)
+        try deleteMetadata(with: identifier)
+        try deleteTwofoldEncryptedKey(with: identifier)
     }
     
     func allDocumentsMetadata() -> [HealthEnclave_DocumentMetadata] {
@@ -217,5 +224,26 @@ class DocumentStore {
                                           with identifier: HealthEnclave_DocumentIdentifier) throws {
         let uri = documentKeysFolder.appendingPathComponent(identifier.uuid)
         try key.serializedData().write(to: uri)
+    }
+    
+    private func deleteDocument(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        let uri = documentsFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: uri.path) {
+            try FileManager.default.removeItem(at: uri)
+        }
+    }
+    
+    private func deleteMetadata(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        let uri = metadataFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: uri.path) {
+            try FileManager.default.removeItem(at: uri)
+        }
+    }
+    
+    private func deleteTwofoldEncryptedKey(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        let uri = documentKeysFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: uri.path) {
+            try FileManager.default.removeItem(at: uri)
+        }
     }
 }

@@ -58,6 +58,7 @@ struct ConnectView: View {
                     }
                 VStack(spacing: 40) {
                     if(!model.isConnecting) {
+                        Spacer().frame(height: 40)
                         Rectangle()
                             .stroke(Color.white, style: StrokeStyle(
                                         lineWidth: 4,
@@ -69,6 +70,16 @@ struct ConnectView: View {
                             .foregroundColor(Color.white)
                             .multilineTextAlignment(.center)
                             .shadow(radius: 4)
+                        Spacer().frame(height: 40)
+                        NavigationLink(destination: DocumentAdministrationView()) {
+                            Text("Document Administration")
+                                .fixedSize()
+                                .padding()
+                                .background(Color(white: 0.4, opacity: 0.4))
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        .navigationTitle("Documents")
                     } else {
                         ActivityIndicator(isAnimating: .constant(true))
                         Text("Connecting...")

@@ -21,6 +21,7 @@
 		BDD7538624360CA10025E098 /* NetworkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD7538524360CA10025E098 /* NetworkUtils.swift */; };
 		BDD756592437E9AF0025E098 /* HealthEnclaveClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD756582437E9AF0025E098 /* HealthEnclaveClient.swift */; };
 		BDE96DE324C08B3700E4AEFE /* HealthEnclaveCommon in Frameworks */ = {isa = PBXBuildFile; productRef = BDE96DE224C08B3700E4AEFE /* HealthEnclaveCommon */; };
+		BDE96DE524C1F24A00E4AEFE /* DocumentAdministrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDE96DE424C1F24A00E4AEFE /* DocumentAdministrationView.swift */; };
 		BDEE72FA240D782B00C73EB8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE72F9240D782B00C73EB8 /* AppDelegate.swift */; };
 		BDEE72FC240D782B00C73EB8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE72FB240D782B00C73EB8 /* SceneDelegate.swift */; };
 		BDEE72FE240D782B00C73EB8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDEE72FD240D782B00C73EB8 /* ContentView.swift */; };
@@ -42,6 +43,7 @@
 		BDD7538524360CA10025E098 /* NetworkUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkUtils.swift; sourceTree = "<group>"; };
 		BDD756582437E9AF0025E098 /* HealthEnclaveClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthEnclaveClient.swift; sourceTree = "<group>"; };
 		BDE96DDF24C08AB200E4AEFE /* HealthEnclaveCommon */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HealthEnclaveCommon; path = ../HealthEnclaveCommon; sourceTree = "<group>"; };
+		BDE96DE424C1F24A00E4AEFE /* DocumentAdministrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentAdministrationView.swift; sourceTree = "<group>"; };
 		BDEE72F6240D782B00C73EB8 /* HealthEnclaveApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HealthEnclaveApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDEE72F9240D782B00C73EB8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		BDEE72FB240D782B00C73EB8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				BDCDBA8724B31750005ADB16 /* ConnectView.swift */,
 				BDCDBA8924B335C2005ADB16 /* SetupView.swift */,
 				BD401E6D24B3BB45007A5565 /* KeyboardAdaptive.swift */,
+				BDE96DE424C1F24A00E4AEFE /* DocumentAdministrationView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -227,6 +230,7 @@
 				BD6E21F324251F8F00033B0A /* ActivityIndicator.swift in Sources */,
 				BDD4F29424AF6AED00969FAD /* DocumentStore.swift in Sources */,
 				BDCDBA8824B31750005ADB16 /* ConnectView.swift in Sources */,
+				BDE96DE524C1F24A00E4AEFE /* DocumentAdministrationView.swift in Sources */,
 				BDEE72FC240D782B00C73EB8 /* SceneDelegate.swift in Sources */,
 				BDD4F29624AF8BD500969FAD /* DocumentsModel.swift in Sources */,
 				BDD756592437E9AF0025E098 /* HealthEnclaveClient.swift in Sources */,

@@ -139,7 +139,7 @@ class DocumentsModel {
                 .buffer(size: .max, prefetch: .keepFull, whenFull: .dropNewest)
                 .eraseToAnyPublisher()
             
-            documentStore.storeDocument(from: twofoldEncryptedDocumentStreamSubject)
+            documentStore.store(from: twofoldEncryptedDocumentStreamSubject)
         }
     }
     
