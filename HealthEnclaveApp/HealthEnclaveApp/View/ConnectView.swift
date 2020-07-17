@@ -71,7 +71,7 @@ struct ConnectView: View {
                             .multilineTextAlignment(.center)
                             .shadow(radius: 4)
                         Spacer().frame(height: 40)
-                        NavigationLink(destination: DocumentAdministrationView()) {
+                        NavigationLink(destination: DocumentAdministrationView().navigationTitle("Documents")) {
                             Text("Document Administration")
                                 .fixedSize()
                                 .padding()
@@ -79,7 +79,6 @@ struct ConnectView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
-                        .navigationTitle("Documents")
                     } else {
                         ActivityIndicator(isAnimating: .constant(true))
                         Text("Connecting...")

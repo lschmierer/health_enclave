@@ -92,6 +92,13 @@ class DocumentStore {
         try storeTwofoldEncryptedKey(key, with: identifier)
     }
     
+    func delete(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        documentsMetadata[identifier] = nil
+        try deleteDocument(with: identifier)
+        try deleteMetadata(with: identifier)
+        try deleteTwofoldEncryptedKey(with: identifier)
+    }
+    
     func allDocumentsMetadata() -> [HealthEnclave_DocumentMetadata] {
         return Array(documentsMetadata.values)
     }
@@ -213,5 +220,25 @@ class DocumentStore {
                                with identifier: HealthEnclave_DocumentIdentifier) throws {
         let uri = documentsFolder.appendingPathComponent(identifier.uuid)
         try document.write(to: uri)
+    }
+    private func deleteDocument(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        let uri = documentsFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: uri.path) {
+            try FileManager.default.removeItem(at: uri)
+        }
+    }
+    
+    private func deleteMetadata(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        let uri = metadataFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: uri.path) {
+            try FileManager.default.removeItem(at: uri)
+        }
+    }
+    
+    private func deleteTwofoldEncryptedKey(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        let uri = documentKeysFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: uri.path) {
+            try FileManager.default.removeItem(at: uri)
+        }
     }
 }

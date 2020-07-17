@@ -20,6 +20,7 @@ private let applicationSupportDirectory = try! FileManager.default.url(for: .app
 private let globalStorageFolder = applicationSupportDirectory.appendingPathComponent("Storage", isDirectory: true)
 private let globalDocumentsFolder = globalStorageFolder.appendingPathComponent("Documents", isDirectory: true)
 private let globalMetadataFolder = globalStorageFolder.appendingPathComponent("Metadata", isDirectory: true)
+private let globalDeletedMetadataFolder = globalStorageFolder.appendingPathComponent("Deleted Metadata", isDirectory: true)
 private let globalDocumentKeysFolder = globalStorageFolder.appendingPathComponent("Document Keys", isDirectory: true)
 
 enum DocumentStoreError: Error {
@@ -32,9 +33,12 @@ class DocumentStore {
     
     private let documentsFolder: URL
     private let metadataFolder: URL
+    private let deletedMetadataFolder: URL
     private let documentKeysFolder: URL
     
     private var documentsMetadata =
+        [HealthEnclave_DocumentIdentifier: HealthEnclave_DocumentMetadata]()
+    private var deletedDocumentsMetadata =
         [HealthEnclave_DocumentIdentifier: HealthEnclave_DocumentMetadata]()
     
     private var documentStreamSubscriptions = Set<AnyCancellable>()
@@ -46,11 +50,15 @@ class DocumentStore {
         let deviceIdentfierFolder = String(deviceIdentifier.hexEncodedString.prefix(255))
         
         metadataFolder = globalMetadataFolder.appendingPathComponent(deviceIdentfierFolder, isDirectory: true)
+        deletedMetadataFolder = globalDeletedMetadataFolder.appendingPathComponent(deviceIdentfierFolder, isDirectory: true)
         documentsFolder = globalDocumentsFolder.appendingPathComponent(deviceIdentfierFolder, isDirectory: true)
         documentKeysFolder = globalDocumentKeysFolder.appendingPathComponent(deviceIdentfierFolder, isDirectory: true)
         
         if !FileManager.default.fileExists(atPath: metadataFolder.path) {
             try FileManager.default.createDirectory(at: metadataFolder, withIntermediateDirectories: true, attributes: nil)
+        }
+        if !FileManager.default.fileExists(atPath: deletedMetadataFolder.path) {
+            try FileManager.default.createDirectory(at: deletedMetadataFolder, withIntermediateDirectories: true, attributes: nil)
         }
         if !FileManager.default.fileExists(atPath: documentsFolder.path) {
             try FileManager.default.createDirectory(at: documentsFolder, withIntermediateDirectories: true, attributes: nil)
@@ -60,6 +68,7 @@ class DocumentStore {
         }
         
         try readMetadata()
+        try readDeletedMetadata()
     }
     
     func store(from documentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error>) {
@@ -114,6 +123,7 @@ class DocumentStore {
     }
     
     func delete(with identifier: HealthEnclave_DocumentIdentifier) throws {
+        deletedDocumentsMetadata[identifier] = documentsMetadata[identifier]
         documentsMetadata[identifier] = nil
         try deleteDocument(with: identifier)
         try deleteMetadata(with: identifier)
@@ -122,6 +132,11 @@ class DocumentStore {
     
     func allDocumentsMetadata() -> [HealthEnclave_DocumentMetadata] {
         return Array(documentsMetadata.values)
+    }
+    
+    func allDeletedDocuments() -> [HealthEnclave_DocumentIdentifier] {
+        return Array(deletedDocumentsMetadata.values)
+            .map({ $0.id })
     }
     
     func metadata(for identifier: HealthEnclave_DocumentIdentifier) -> HealthEnclave_DocumentMetadata? {
@@ -192,6 +207,24 @@ class DocumentStore {
         }
     }
     
+    private func readDeletedMetadata() throws {
+        try FileManager.default.contentsOfDirectory(at: deletedMetadataFolder, includingPropertiesForKeys: []).forEach { url in
+            if let uuid = UUID(uuidString: url.lastPathComponent) {
+                do {
+                    let documentIdentifier = HealthEnclave_DocumentIdentifier.with {
+                        $0.uuid = uuid.uuidString
+                    }
+                    
+                    let documentMetadata = try HealthEnclave_DocumentMetadata(serializedData: Data(contentsOf: url))
+                    
+                    deletedDocumentsMetadata[documentIdentifier] = documentMetadata
+                } catch {
+                    os_log(.error, "Error reading: %@", String(reflecting: url))
+                }
+            }
+        }
+    }
+    
     private func readDocument(for identifier: HealthEnclave_DocumentIdentifier) throws
     -> Data {
         let keyFile = documentsFolder.appendingPathComponent(identifier.uuid)
@@ -235,8 +268,12 @@ class DocumentStore {
     
     private func deleteMetadata(with identifier: HealthEnclave_DocumentIdentifier) throws {
         let uri = metadataFolder.appendingPathComponent(identifier.uuid)
+        let deletedUri = deletedMetadataFolder.appendingPathComponent(identifier.uuid)
+        if FileManager.default.fileExists(atPath: deletedUri.path) {
+            try FileManager.default.removeItem(at: deletedUri)
+        }
         if FileManager.default.fileExists(atPath: uri.path) {
-            try FileManager.default.removeItem(at: uri)
+            try FileManager.default.moveItem(at: uri, to: deletedUri)
         }
     }
     

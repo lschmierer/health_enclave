@@ -49,6 +49,7 @@ struct DocumentAdministrationView: View {
         }
         .onAppear {
             documents = model.localDocuments()
+            documents.sort(by: { $0.createdAt.date > $1.createdAt.date })
         }
         .alert(isPresented: $askDelete) {
             let dateFormatter = DateFormatter()

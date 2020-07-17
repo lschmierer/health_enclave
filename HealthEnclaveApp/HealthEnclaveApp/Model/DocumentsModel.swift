@@ -41,6 +41,7 @@ class DocumentsModel {
         setupMissingDocumentsForTerminalSubscription()
         setupMissingEncryptedDocumentKeyForTerminalSubscription()
         
+        client.deleteDocmentsForTerminal(documentStore.allDeletedDocuments())
         client.advertiseDocmentsToTerminal(documentStore.allDocumentsMetadata())
     }
     
@@ -63,9 +64,11 @@ class DocumentsModel {
         missingDocumentsForDeviceSubscription = client?.missingDocumentsForDeviceSubject
             .receive(on: DispatchQueue.global())
             .sink(receiveValue: { [weak self] documentIdentifier in
-                guard let self = self else { return }
+                guard let self = self, let documentStore = self.documentStore else { return }
                 
-                self.missingDocumentsForDevice.insert(documentIdentifier)
+                if documentStore.metadata(for: documentIdentifier) == nil {
+                    self.missingDocumentsForDevice.insert(documentIdentifier)
+                }
                 
                 self.transferToDevice()
             })

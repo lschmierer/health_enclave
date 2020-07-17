@@ -17,8 +17,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             if model.deviceKey == nil {
-                SetupView()
-                    .navigationBarTitle("Setup")
+                SetupView().navigationBarTitle("Setup")
             } else {
                 ConnectView()
             }

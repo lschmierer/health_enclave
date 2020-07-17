@@ -37,6 +37,11 @@ service HealthEnclave {
     // This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
     rpc MissingDocumentsForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
     
+    // The client streams a list of deleted documents.
+    //
+    // The server shall delete these documents as well.
+    rpc DeletedDocumentsForTerminal(stream DocumentIdentifier) returns (google.protobuf.Empty);
+    
     // Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
     // Thes keys give immediate access to documents.
     rpc MissingEncryptedDocumentKeysForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);

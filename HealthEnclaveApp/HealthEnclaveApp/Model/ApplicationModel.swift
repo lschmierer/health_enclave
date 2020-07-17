@@ -179,7 +179,7 @@ class ApplicationModel: ObservableObject {
     }
     
     func deleteLocalDocument(with identifier: HealthEnclave_DocumentIdentifier) {
-        try? self.documentStore?.delete(with: identifier)
+        try! self.documentStore?.delete(with: identifier)
     }
     
     func disconnect() {

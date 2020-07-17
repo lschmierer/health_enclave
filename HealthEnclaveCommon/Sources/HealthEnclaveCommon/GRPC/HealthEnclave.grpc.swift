@@ -50,6 +50,10 @@ public protocol HealthEnclave_HealthEnclaveClientProtocol: GRPCClient {
     handler: @escaping (HealthEnclave_DocumentIdentifier) -> Void
   ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, HealthEnclave_DocumentIdentifier>
 
+  func deletedDocumentsForTerminal(
+    callOptions: CallOptions?
+  ) -> ClientStreamingCall<HealthEnclave_DocumentIdentifier, SwiftProtobuf.Google_Protobuf_Empty>
+
   func missingEncryptedDocumentKeysForTerminal(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?,
@@ -175,6 +179,25 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       handler: handler
+    )
+  }
+
+  /// The client streams a list of deleted documents.
+  ///
+  /// The server shall delete these documents as well.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response.
+  public func deletedDocumentsForTerminal(
+    callOptions: CallOptions? = nil
+  ) -> ClientStreamingCall<HealthEnclave_DocumentIdentifier, SwiftProtobuf.Google_Protobuf_Empty> {
+    return self.makeClientStreamingCall(
+      path: "/health_enclave.HealthEnclave/DeletedDocumentsForTerminal",
+      callOptions: callOptions ?? self.defaultCallOptions
     )
   }
 
@@ -347,6 +370,10 @@ public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   /// Documents requested last shall be transmitted first.
   /// This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
   func missingDocumentsForTerminal(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus>
+  /// The client streams a list of deleted documents.
+  ///
+  /// The server shall delete these documents as well.
+  func deletedDocumentsForTerminal(context: UnaryResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void>
   /// Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
   /// Thes keys give immediate access to documents.
   func missingEncryptedDocumentKeysForTerminal(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus>
@@ -397,6 +424,11 @@ extension HealthEnclave_HealthEnclaveProvider {
         return { request in
           self.missingDocumentsForTerminal(request: request, context: context)
         }
+      }
+
+    case "DeletedDocumentsForTerminal":
+      return CallHandlerFactory.makeClientStreaming(callHandlerContext: callHandlerContext) { context in
+        return self.deletedDocumentsForTerminal(context: context)
       }
 
     case "MissingEncryptedDocumentKeysForTerminal":

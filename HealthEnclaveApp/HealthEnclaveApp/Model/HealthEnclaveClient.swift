@@ -153,6 +153,12 @@ class HealthEnclaveClient {
         _ = streamingCall.sendEnd()
     }
     
+    func deleteDocmentsForTerminal(_ deleteDocuments: [HealthEnclave_DocumentIdentifier]) {
+        let streamingCall = client.deletedDocumentsForTerminal()
+        _ = streamingCall.sendMessages(deleteDocuments)
+        _ = streamingCall.sendEnd()
+    }
+    
     func transferDocumentsToDevice(with identifier: HealthEnclave_DocumentIdentifier) -> AnyPublisher<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error> {
         let documentStreamSubject = PassthroughSubject<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error>()
         

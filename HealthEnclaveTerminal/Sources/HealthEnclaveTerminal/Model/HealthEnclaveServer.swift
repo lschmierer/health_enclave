@@ -63,6 +63,11 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
         get { return _deviceAdvertisedDocumentsSubject.eraseToAnyPublisher() }
     }
     
+    private let _deleteDocumentsSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>();
+    var deleteDocumentsSubject: AnyPublisher<HealthEnclave_DocumentIdentifier, Never> {
+        get { return _deleteDocumentsSubject.eraseToAnyPublisher() }
+    }
+    
     let missingDocumentsForDeviceSubject = PassthroughSubject<HealthEnclave_DocumentIdentifier, Never>()
     private var missingDocumentsForDeviceSubscription: Cancellable?
     
@@ -257,6 +262,17 @@ class HealthEnclaveServer: HealthEnclave_HealthEnclaveProvider {
                 
                 return promise.futureResult
             }
+    }
+    
+    func deletedDocumentsForTerminal(context: UnaryResponseCallContext<Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void> {
+        return checkClient(context).map { [weak self] in
+            return { event in
+                guard let self = self else { return }
+                if case let .message(metadata) = event {
+                    self._deleteDocumentsSubject.send(metadata)
+                }
+            }
+        }
     }
     
     func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier,

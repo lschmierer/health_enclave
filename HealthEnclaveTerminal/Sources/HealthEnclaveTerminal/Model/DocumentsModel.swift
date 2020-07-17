@@ -46,6 +46,7 @@ class DocumentsModel {
     private var retrieveDocumentData: Data?
     
     private var deviceAdvertisedDocumentsSubscription: Cancellable?
+    private var deleteDocumentsSubscription: Cancellable?
     private var transferDocumentToDeviceSubscription: Cancellable?
     private var transferDocumentToTerminalSubscription: Cancellable?
     private var documentStreamSubscriptions = Set<AnyCancellable>()
@@ -58,6 +59,7 @@ class DocumentsModel {
         self.server = server
         
         setupDeviceAdvertisedDocumentsSubscription()
+        setupDeleteDocumentsSubscription()
         setupTransferDocumentToDeviceSubscription()
         setupTransferDocumentToTerminalSubscription()
         setupEncryptedDocumentKeySubscription()
@@ -185,6 +187,15 @@ class DocumentsModel {
                 if self.documentStore.metadata(for: documentMetadata.id) == nil {
                     self.server.missingDocumentsForTerminalSubject.send(documentMetadata.id)
                 }
+        }
+    }
+    
+    private func setupDeleteDocumentsSubscription() {
+        deleteDocumentsSubscription = server.deleteDocumentsSubject
+            .receive(on: DispatchQueue.global())
+            .sink() { [weak self] documentIdentifier in
+                guard let self = self else { return }
+                try? self.documentStore.delete(with: documentIdentifier)
         }
     }
     
