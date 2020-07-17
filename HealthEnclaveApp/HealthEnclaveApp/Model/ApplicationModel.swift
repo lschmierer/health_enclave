@@ -163,8 +163,7 @@ class ApplicationModel: ObservableObject {
         return HealthEnclaveClient.create(ipAddress: ipAddress,
                                           port: port,
                                           certificate: certificate,
-                                          deviceIdentifier: self.deviceIdentifier,
-                                          advertisedDocumentsMetadata: documentStore!.allDocumentsMetadata())
+                                          deviceIdentifier: self.deviceIdentifier)
             .map { [weak self] client in
                 guard let self = self else { return }
                 self.client = client

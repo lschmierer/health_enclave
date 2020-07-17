@@ -38,6 +38,8 @@ class DocumentsModel {
         setupMissingDocumentsForDeviceSubscription()
         setupMissingDocumentsForTerminalSubscription()
         setupMissingEncryptedDocumentKeyForTerminalSubscription()
+        
+        client.advertiseDocmentsToTerminal(documentStore.allDocumentsMetadata())
     }
     
     func grantAccess(to documentIdentifier: HealthEnclave_DocumentIdentifier) {

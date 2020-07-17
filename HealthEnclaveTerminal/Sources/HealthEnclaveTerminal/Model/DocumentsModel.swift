@@ -162,7 +162,10 @@ class DocumentsModel {
                 guard let self = self else { return }
                 self._documentsMetadata.insert(documentMetadata)
                 self._documentAddedSubject.send(documentMetadata)
-                // TODO start transfering missing document from device to terminal
+                
+                if self.documentStore.metadata(for: documentMetadata.id) == nil {
+                    self.server.missingDocumentsForTerminalSubject.send(documentMetadata.id)
+                }
         }
     }
     

@@ -51,10 +51,9 @@ class HealthEnclaveClient {
     class func create(ipAddress: String,
                       port: Int,
                       certificate: NIOSSLCertificate,
-                      deviceIdentifier: DeviceCryptography.DeviceIdentifier,
-                      advertisedDocumentsMetadata: [HealthEnclave_DocumentMetadata]) -> AnyPublisher<HealthEnclaveClient, ApplicationError> {
+                      deviceIdentifier: DeviceCryptography.DeviceIdentifier) -> AnyPublisher<HealthEnclaveClient, ApplicationError> {
         let client = HealthEnclaveClient(ipAddress: ipAddress, port: port, certificate: certificate, deviceIdentifier: deviceIdentifier)
-        return client.establishConnection(advertisedDocumentsMetadata)
+        return client.establishConnection()
             .map { client }
             .eraseToAnyPublisher()
     }
@@ -83,7 +82,7 @@ class HealthEnclaveClient {
         client = HealthEnclave_HealthEnclaveClient(channel: channel, defaultCallOptions: callOptions)
     }
     
-    private func establishConnection(_ advertisedDocumentsMetadata: [HealthEnclave_DocumentMetadata]) -> AnyPublisher<Void, ApplicationError>  {
+    private func establishConnection() -> AnyPublisher<Void, ApplicationError>  {
         let subject = PassthroughSubject<Void, ApplicationError>()
         var sentToSubject = false
         
@@ -127,10 +126,6 @@ class HealthEnclaveClient {
                 }
             })
         
-        let streamingCall = client.advertiseDocumentsToTerminal()
-        _ = streamingCall.sendMessages(advertisedDocumentsMetadata)
-        _ = streamingCall.sendEnd()
-        
         _ = self.client.missingDocumentsForDevice(Google_Protobuf_Empty()) { [weak self] documentIdentifier in
             self?._missingDocumentsForDeviceSubject.send(documentIdentifier)
         }
@@ -148,6 +143,12 @@ class HealthEnclaveClient {
         }
         
         return subject.eraseToAnyPublisher()
+    }
+    
+    func advertiseDocmentsToTerminal(_ advertisedDocumentsMetadata: [HealthEnclave_DocumentMetadata]) {
+        let streamingCall = client.advertiseDocumentsToTerminal()
+        _ = streamingCall.sendMessages(advertisedDocumentsMetadata)
+        _ = streamingCall.sendEnd()
     }
     
     func transferDocumentsToDevice(with identifier: HealthEnclave_DocumentIdentifier) -> AnyPublisher<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked, Error> {
