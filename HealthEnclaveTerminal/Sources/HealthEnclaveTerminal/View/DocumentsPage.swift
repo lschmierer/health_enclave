@@ -92,7 +92,6 @@ class DocumentsPage: Box {
         }
         
         documentAddedSubscription = model.documentAddedSubject
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] documentMetadata in
                 self?.addDocumentToList(documentMetadata)
         }
@@ -164,7 +163,6 @@ class DocumentsPage: Box {
     private func openDocument(_ documentIdentifier: HealthEnclave_DocumentIdentifier) {
         spinner.start()
         openDocumentSubscription = try! model.retrieveDocument(documentIdentifier)
-            .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 self?.spinner.stop()
                 if case let .failure(error) = completion,

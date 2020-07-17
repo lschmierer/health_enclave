@@ -64,7 +64,6 @@ class MainWindow: ApplicationWindow {
         add(page!)
         
         serverSetupCompleteSubscription = model.setupCompletedSubject
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] (result) in
                 switch result {
                 case let .success(wifiConfiguration):
@@ -77,14 +76,12 @@ class MainWindow: ApplicationWindow {
         }
         
         serverDeviceConnectedSubscription = model.deviceConnectedSubject
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] in
                 logger.debug("Showing SharedKeyPage...")
                 self?.page = SharedKeyPage()
         }
         
         serverSharedKeySetSubscription = model.sharedKeySetSubject
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] documentsModel in
                 guard let self = self else { return }
                 logger.debug("Showing DocumentsPage...")

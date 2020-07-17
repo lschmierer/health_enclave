@@ -69,6 +69,7 @@ struct SetupView: View {
                 Button("Restore Backup", action: {
                     do {
                         try self.model.setDeviceKey(from: recoverySeed
+                                                        .lowercased()
                                                         .split(whereSeparator: \.isNewline)
                                                         .flatMap({ $0.split(whereSeparator: \.isWhitespace) })
                                                         .map({ String($0) }))
@@ -96,7 +97,7 @@ struct SetupView: View {
             return AnyView(VStack {
                 Button("Setup", action: {
                     self.setupType = .setup
-                    self.model.generateDeviceKey()
+                    self.model.generateMnemonic()
                 })
                 .fixedSize()
                 .padding()

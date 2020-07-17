@@ -45,7 +45,7 @@ class DocumentStore {
         self.deviceIdentifier = deviceIdentifier
         
         // 255 is the max allowed filename length
-        let deviceIdentfierFolder = String(deviceIdentifier.hexEncodedString.prefix(255))
+        let deviceIdentfierFolder = deviceIdentifier.hexEncodedString
         
         metadataFolder = globalMetadataFolder.appendingPathComponent(deviceIdentfierFolder, isDirectory: true)
         documentsFolder = globalDocumentsFolder.appendingPathComponent(deviceIdentfierFolder, isDirectory: true)

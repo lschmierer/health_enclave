@@ -53,35 +53,34 @@ class ApplicationModel: ObservableObject {
     @Published public internal(set) var connectionError: ApplicationError?
     
     public internal(set) var documentsModel: DocumentsModel?
-    private let deviceIdentifier: DeviceCryptography.DeviceIdentifier
+    private var deviceIdentifier: DeviceCryptography.DeviceIdentifier?
     private var documentStore: DocumentStore?
     private var client: HealthEnclaveClient?
     
     private var connectionSubscription: AnyCancellable?
     
     init() {
-        if let hexDeviceIdentifier = UserDefaults.standard.object(forKey: "deviceIdentifier") as? String {
-            deviceIdentifier = DeviceCryptography.DeviceIdentifier(hexEncoded: hexDeviceIdentifier)!
-        } else {
-            deviceIdentifier = DeviceCryptography.DeviceIdentifier()
-            UserDefaults.standard.set(deviceIdentifier.hexEncodedString, forKey: "deviceIdentifier")
-        }
         if UserDefaults.standard.bool(forKey: "deviceKeySet") {
             deviceKey = KeyChain.load()
+            deviceIdentifier = DeviceCryptography.DeviceIdentifier(from: deviceKey!)
         }
     }
     
-    func generateDeviceKey() {
+    func generateMnemonic() {
         let mnemonic = Mnemonic()
         self.mnemonicPhrase = mnemonic.phrase
     }
     
     func setDeviceKey(from mnemonicPhrase: [String]) throws {
+        os_log(.info, "Recovery phrase: %@", String(reflecting: mnemonicPhrase))
         let mnemonic = try Mnemonic(phrase: mnemonicPhrase)
         self.mnemonicPhrase = mnemonicPhrase
+        
         deviceKey = try! DeviceCryptography.DeviceKey(data: Data(mnemonic.seed[..<32]))
         try! KeyChain.save(key: deviceKey!)
         UserDefaults.standard.set(true, forKey: "deviceKeySet")
+        
+        deviceIdentifier = DeviceCryptography.DeviceIdentifier(from: deviceKey!)
     }
     
     
@@ -159,11 +158,11 @@ class ApplicationModel: ObservableObject {
     private func createClient(ipAddress: String,
                               port: Int,
                               certificate: NIOSSLCertificate) -> AnyPublisher<Void, ApplicationError> {
-        documentStore = try! DocumentStore(for: self.deviceIdentifier)
+        documentStore = try! DocumentStore(for: self.deviceIdentifier!)
         return HealthEnclaveClient.create(ipAddress: ipAddress,
                                           port: port,
                                           certificate: certificate,
-                                          deviceIdentifier: self.deviceIdentifier)
+                                          deviceIdentifier: self.deviceIdentifier!)
             .map { [weak self] client in
                 guard let self = self else { return }
                 self.client = client

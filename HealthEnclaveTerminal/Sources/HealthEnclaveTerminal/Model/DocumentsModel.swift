@@ -19,6 +19,10 @@ import HealthEnclaveCommon
 
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.DeviceDocumentsModel")
 
+// Give the device some time to advertise documents before
+// sending a list of missing documents for device.
+private let advertiseTimeout = DispatchTimeInterval.seconds(1)
+
 class DocumentsModel {
     
     private var sharedKey: TerminalCryptography.SharedKey?
@@ -32,7 +36,7 @@ class DocumentsModel {
     
     private let _documentAddedSubject = PassthroughSubject<HealthEnclave_DocumentMetadata, Never>()
     var documentAddedSubject: AnyPublisher<HealthEnclave_DocumentMetadata, Never> {
-        get { return _documentAddedSubject.eraseToAnyPublisher() }
+        get { return _documentAddedSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
     }
     
     private var retrieveDocumentSubject: PassthroughSubject<URL, ApplicationError>?
@@ -42,8 +46,8 @@ class DocumentsModel {
     private var retrieveDocumentData: Data?
     
     private var deviceAdvertisedDocumentsSubscription: Cancellable?
-    private var transferDocumentToDeviceRequestSubscription: Cancellable?
-    private var documentSubscription: Cancellable?
+    private var transferDocumentToDeviceSubscription: Cancellable?
+    private var transferDocumentToTerminalSubscription: Cancellable?
     private var documentStreamSubscriptions = Set<AnyCancellable>()
     private var encryptedDocumentKeySubscription: Cancellable?
     private var encryptedDocumentKeyNotSubscription: Cancellable?
@@ -54,11 +58,24 @@ class DocumentsModel {
         self.server = server
         
         setupDeviceAdvertisedDocumentsSubscription()
-        setupTransferDocumentToDeviceRequestSubscription()
-        setupDocumentSubscription()
+        setupTransferDocumentToDeviceSubscription()
+        setupTransferDocumentToTerminalSubscription()
         setupEncryptedDocumentKeySubscription()
         setupEncryptedDocumentKeyNotSubscription()
         setupTwofoldEncryptedDocumentKeySubscription()
+        
+        
+        DispatchQueue.global().asyncAfter(deadline: .now() + advertiseTimeout) { [weak self] in
+            guard let self = self else { return }
+            
+            let documentsMetadata = documentStore.allDocumentsMetadata()
+            for metadata in documentsMetadata {
+                if !self._documentsMetadata.contains(metadata) {
+                    server.missingDocumentsForDeviceSubject.send(metadata.id)
+                    self._documentsMetadata.insert(metadata)
+                }
+            }
+        }
     }
     
     func setSharedKey(_ sharedKey: TerminalCryptography.SharedKey) {
@@ -122,11 +139,13 @@ class DocumentsModel {
         } else {
             retrieveDocumentMetadata = nil
             retrieveDocumentData = nil
+            // We might already have sent a missing document request (in setupDeviceAdvertisedDocumentsSubscription).
+            // Sending it again, however, tells the device to prioritize this document.
             server.missingDocumentsForTerminalSubject.send(documentIdentifier)
             server.missingEncryptedDocumentKeysForTerminalSubject.send(documentIdentifier)
         }
         
-        return retrieveDocumentSubject.eraseToAnyPublisher()
+        return retrieveDocumentSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
     
     private func resolveRetrieveDocument() {
@@ -169,9 +188,9 @@ class DocumentsModel {
         }
     }
     
-    private func setupTransferDocumentToDeviceRequestSubscription() {
+    private func setupTransferDocumentToDeviceSubscription() {
         // Transfer document to device.
-        transferDocumentToDeviceRequestSubscription = server.transferDocumentToDeviceRequestSubject
+        transferDocumentToDeviceSubscription = server.transferDocumentToDeviceRequestSubject
             .receive(on: DispatchQueue.global())
             .sink() { [weak self] (identifier, documentStreamSubject) in
                 guard let self = self else { return }
@@ -180,8 +199,8 @@ class DocumentsModel {
         }
     }
     
-    private func setupDocumentSubscription() {
-        documentSubscription = server.documentSubject
+    private func setupTransferDocumentToTerminalSubscription() {
+        transferDocumentToTerminalSubscription = server.documentSubject
             .receive(on: DispatchQueue.global())
             .sink { [weak self] documentStream in
                 guard let self = self else { return }
@@ -194,32 +213,32 @@ class DocumentsModel {
                 documentStreamSubscription = documentStream
                     .buffer(size: .max, prefetch: .keepFull, whenFull: .dropNewest)
                     .sink(receiveCompletion: { completion in
-                    if case .finished = completion,
-                        let metadata = metadata,
-                        let key = key {
-                        try! self.documentStore.storeTwofoldEncryptedDocument(data, with: metadata, encryptedWith: key)
-                        
-                        if self.retrieveDocumentSubject != nil,
-                            self.retrieveDocumentIdentifier == metadata.id {
-                            self.retrieveDocumentMetadata = metadata
-                            self.retrieveDocumentData = data
+                        if case .finished = completion,
+                            let metadata = metadata,
+                            let key = key {
+                            try! self.documentStore.storeTwofoldEncryptedDocument(data, with: metadata, encryptedWith: key)
                             
-                            self.resolveRetrieveDocument()
+                            if self.retrieveDocumentSubject != nil,
+                                self.retrieveDocumentIdentifier == metadata.id {
+                                self.retrieveDocumentMetadata = metadata
+                                self.retrieveDocumentData = data
+                                
+                                self.resolveRetrieveDocument()
+                            }
                         }
-                    }
-                    self.documentStreamSubscriptions.remove(documentStreamSubscription!)
-                }, receiveValue: { chunk in
-                    switch chunk.content {
-                    case let .metadata(m):
-                        metadata = m
-                    case let .key(k):
-                        key = k
-                    case let .chunk(d):
-                        data.append(d)
-                    default:
-                        break
-                    }
-                })
+                        self.documentStreamSubscriptions.remove(documentStreamSubscription!)
+                    }, receiveValue: { chunk in
+                        switch chunk.content {
+                        case let .metadata(m):
+                            metadata = m
+                        case let .key(k):
+                            key = k
+                        case let .chunk(d):
+                            data.append(d)
+                        default:
+                            break
+                        }
+                    })
                 
                 self.documentStreamSubscriptions.insert(documentStreamSubscription!)
         }

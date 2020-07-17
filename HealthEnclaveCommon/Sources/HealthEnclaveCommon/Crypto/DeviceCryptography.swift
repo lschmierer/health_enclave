@@ -37,16 +37,22 @@ extension Data {
 }
 
 public enum DeviceCryptography {
+    public class DeviceKey: CryptoPrimitives.SymmetricKey {}
+    
     public struct DeviceIdentifier: Equatable {
         let data: Data
         
         public init() {
-            data = Data(CryptoPrimitives.randomBytes(count: 256))
+            data = Data(CryptoPrimitives.randomBytes(count: 32))
+        }
+        
+        public init(from key: DeviceKey) {
+            data = CryptoPrimitives.hash(key.data)
         }
         
         public init?(hexEncoded hex: String) {
             if let data = Data(hexEncoded: hex),
-                data.count == 256 {
+                data.count == 32 {
                 self.data = data
             } else {
                 return nil
@@ -59,8 +65,6 @@ public enum DeviceCryptography {
             }
         }
     }
-    
-    public class DeviceKey: CryptoPrimitives.SymmetricKey {}
     
     public static func encryptEncryptedDocumentKey(_ documentKey: HealthEnclave_EncryptedDocumentKey,
                                                    using deviceKey: DeviceKey,

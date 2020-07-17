@@ -14,13 +14,15 @@ import HealthEnclaveCommon
 class DocumentsModel {
     private let _accessDocumentRequests = PassthroughSubject<HealthEnclave_DocumentMetadata, Never>()
     var accessDocumentRequests: AnyPublisher<HealthEnclave_DocumentMetadata, Never> {
-        get { return _accessDocumentRequests.eraseToAnyPublisher() }
+        get { return _accessDocumentRequests.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
     }
     
     private let deviceKey: DeviceCryptography.DeviceKey
     private weak var documentStore: DocumentStore?
     private weak var client: HealthEnclaveClient?
     
+    private var missingDocumentsForDevice = Set<HealthEnclave_DocumentIdentifier>()
+    private var transferringToDevice = false
     private var missingDocumentsForTerminal = [HealthEnclave_DocumentIdentifier]()
     private var transferringToTerminal = false
     private var transferToTerminalSubscription: Cancellable?
@@ -61,55 +63,84 @@ class DocumentsModel {
         missingDocumentsForDeviceSubscription = client?.missingDocumentsForDeviceSubject
             .receive(on: DispatchQueue.global())
             .sink(receiveValue: { [weak self] documentIdentifier in
-                guard let self = self, let client = self.client, let documentStore = self.documentStore else { return }
+                guard let self = self else { return }
                 
-                var metadata: HealthEnclave_DocumentMetadata?
+                self.missingDocumentsForDevice.insert(documentIdentifier)
                 
-                let twofoldEncryptedDocumentStreamSubject: AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> = client.transferDocumentsToDevice(with: documentIdentifier)
-                    .flatMap { chunk -> AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> in
-                        switch chunk.content {
-                        case let .metadata(m):
-                            metadata = m
-                        case let .key(key):
-                            if let metadata = metadata {
-                                var k: HealthEnclave_TwofoldEncryptedDocumentKey?
-                                
-                                switch key.content {
-                                case let .onefoldEncryptedKey(onefoldEncryptedKey):
-                                    k = try! DeviceCryptography.encryptEncryptedDocumentKey(onefoldEncryptedKey,
-                                                                                            using: self.deviceKey,
-                                                                                            authenticating: metadata)
-                                case let .twofoldEncryptedKey(twofoldEncryptedKey):
-                                    k = twofoldEncryptedKey
-                                default: break
-                                }
-                                
-                                client.transferTwofoldEncryptedDocumentKeyToTerminal(k!, with: metadata.id)
-                                
-                                return Publishers.Sequence(sequence: [
-                                    HealthEnclave_TwofoldEncyptedDocumentChunked.with {
-                                        $0.metadata = metadata
-                                    },
-                                    HealthEnclave_TwofoldEncyptedDocumentChunked.with {
-                                        $0.key = k!
-                                    },
-                                ]).eraseToAnyPublisher()
-                            } else {
-                                os_log(.error, "Receiving document failed: key received before metadata")
-                            }
-                        case let .chunk(chunk):
-                            return Result.success(HealthEnclave_TwofoldEncyptedDocumentChunked.with {
-                                $0.chunk = chunk
-                            }).publisher.eraseToAnyPublisher()
-                        default: break
-                        }
+                self.transferToDevice()
+            })
+    }
+    
+    private func transferToDevice() {
+        guard let client = self.client,
+              let documentStore = self.documentStore,
+              !transferringToDevice else { return }
+        
+        if !missingDocumentsForDevice.isEmpty {
+            transferringToDevice = true
+            let documentIdentifier = missingDocumentsForDevice.removeFirst()
+            
+            var metadata: HealthEnclave_DocumentMetadata?
+            
+            let twofoldEncryptedDocumentStreamSubject = client.transferDocumentsToDevice(with: documentIdentifier)
+                .flatMap { [weak self] chunk -> AnyPublisher<HealthEnclave_TwofoldEncyptedDocumentChunked, Error> in
+                    guard let self = self,
+                          let client = self.client
+                    else {
+                        
                         return Empty().eraseToAnyPublisher()
                     }
-                    .buffer(size: .max, prefetch: .keepFull, whenFull: .dropNewest)
-                    .eraseToAnyPublisher()
-                
-                documentStore.storeDocument(from: twofoldEncryptedDocumentStreamSubject)
-            })
+                    
+                    switch chunk.content {
+                    case let .metadata(m):
+                        metadata = m
+                    case let .key(key):
+                        if let metadata = metadata {
+                            var k: HealthEnclave_TwofoldEncryptedDocumentKey?
+                            
+                            switch key.content {
+                            case let .onefoldEncryptedKey(onefoldEncryptedKey):
+                                k = try! DeviceCryptography.encryptEncryptedDocumentKey(onefoldEncryptedKey,
+                                                                                        using: self.deviceKey,
+                                                                                        authenticating: metadata)
+                            case let .twofoldEncryptedKey(twofoldEncryptedKey):
+                                k = twofoldEncryptedKey
+                            default: break
+                            }
+                            
+                            client.transferTwofoldEncryptedDocumentKeyToTerminal(k!, with: metadata.id)
+                            
+                            return Publishers.Sequence(sequence: [
+                                HealthEnclave_TwofoldEncyptedDocumentChunked.with {
+                                    $0.metadata = metadata
+                                },
+                                HealthEnclave_TwofoldEncyptedDocumentChunked.with {
+                                    $0.key = k!
+                                },
+                            ]).eraseToAnyPublisher()
+                        } else {
+                            os_log(.error, "Receiving document failed: key received before metadata")
+                        }
+                    case let .chunk(chunk):
+                        return Result.success(HealthEnclave_TwofoldEncyptedDocumentChunked.with {
+                            $0.chunk = chunk
+                        }).publisher.eraseToAnyPublisher()
+                    default: break
+                    }
+                    return Empty().eraseToAnyPublisher()
+                }
+                .handleEvents(receiveCompletion: { [weak self] completion in
+                    self?.transferringToDevice = false
+                    if case .failure = completion {
+                        self?.missingDocumentsForDevice.insert(documentIdentifier)
+                    }
+                    self?.transferToDevice()
+                })
+                .buffer(size: .max, prefetch: .keepFull, whenFull: .dropNewest)
+                .eraseToAnyPublisher()
+            
+            documentStore.storeDocument(from: twofoldEncryptedDocumentStreamSubject)
+        }
     }
     
     private func setupMissingDocumentsForTerminalSubscription() {

@@ -42,6 +42,10 @@ public enum CryptoPrimitives {
         return (0..<count).map( {_ in g.next()} )
     }
     
+    public static func hash(_ data: Data) -> Data {
+        return Data(SHA256.hash(data: data))
+    }
+    
     public static func encryptSymmetric(_ message: Data,
                                         using key: SymmetricKey,
                                         authenticating authenticatedData: Data) throws -> Data {

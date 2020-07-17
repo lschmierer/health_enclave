@@ -127,6 +127,8 @@ class HealthEnclaveClient {
             })
         
         _ = self.client.missingDocumentsForDevice(Google_Protobuf_Empty()) { [weak self] documentIdentifier in
+            
+                os_log(.error, "MissingDocument: %@", documentIdentifier.uuid)
             self?._missingDocumentsForDeviceSubject.send(documentIdentifier)
         }
         

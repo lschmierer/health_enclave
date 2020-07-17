@@ -32,17 +32,17 @@ enum ApplicationError: Error {
 class ApplicationModel {
     private let _setupCompletedSubject = PassthroughSubject<Result<String, ApplicationError>, Never>()
     var setupCompletedSubject: AnyPublisher<Result<String, ApplicationError>, Never> {
-        get { return _setupCompletedSubject.eraseToAnyPublisher() }
+        get { return _setupCompletedSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
     }
     
     private let _deviceConnectedSubject = PassthroughSubject<Void, Never>()
     var deviceConnectedSubject: AnyPublisher<Void, Never> {
-        get { return _deviceConnectedSubject.eraseToAnyPublisher() }
+        get { return _deviceConnectedSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
     }
     
     private let _sharedKeySetSubject = PassthroughSubject<DocumentsModel, Never>()
     var sharedKeySetSubject: AnyPublisher<DocumentsModel, Never> {
-        get { return _sharedKeySetSubject.eraseToAnyPublisher() }
+        get { return _sharedKeySetSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
     }
     
     private let wifiHotspotController: WifiHotspotControllerProtocol?
