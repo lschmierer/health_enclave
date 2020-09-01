@@ -66,7 +66,6 @@ class DocumentsModel {
         setupEncryptedDocumentKeyNotSubscription()
         setupTwofoldEncryptedDocumentKeySubscription()
         
-        
         DispatchQueue.global().asyncAfter(deadline: .now() + advertiseTimeout) { [weak self] in
             guard let self = self else { return }
             
@@ -74,7 +73,6 @@ class DocumentsModel {
             for metadata in documentsMetadata {
                 if !self._documentsMetadata.contains(metadata) {
                     server.missingDocumentsForDeviceSubject.send(metadata.id)
-                    self._documentsMetadata.insert(metadata)
                 }
             }
         }

@@ -17,32 +17,6 @@ import OpenCombine
 
 import HealthEnclaveCommon
 
-typealias RowActivatedSignalHandler = (TreeViewRef, TreePathRef, TreeViewColumnRef) -> Void
-typealias RowActivatedSignalHandlerrClosureHolder = Closure3Holder<TreeViewRef, TreePathRef, TreeViewColumnRef, Void>
-
-extension TreeViewProtocol {
-    private func _connect(signal name: UnsafePointer<gchar>, flags: ConnectFlags, data: RowActivatedSignalHandlerrClosureHolder, handler: @convention(c) @escaping (gpointer, gpointer, gpointer, gpointer) -> ()) -> Int {
-        let opaqueHolder = Unmanaged.passRetained(data).toOpaque()
-        let callback = unsafeBitCast(handler, to: Callback.self)
-        let rv = signalConnectData(detailedSignal: name, cHandler: callback, data: opaqueHolder, destroyData: {
-            if let swift = $0 {
-                let holder = Unmanaged<RowActivatedSignalHandlerrClosureHolder>.fromOpaque(swift)
-                holder.release()
-            }
-            let _ = $1
-        }, connectFlags: flags)
-        return rv
-    }
-    
-    func connectRowActivated(name: UnsafePointer<gchar>, flags f: ConnectFlags = ConnectFlags(0), handler: @escaping RowActivatedSignalHandler) -> Int {
-        let rv = _connect(signal: name, flags: f, data: Closure3Holder(handler)) {
-            let holder = Unmanaged<RowActivatedSignalHandlerrClosureHolder>.fromOpaque($3).takeUnretainedValue()
-            holder.call(TreeViewRef(raw: $0), TreePathRef(raw: $1), TreeViewColumnRef(raw: $2))
-        }
-        return rv
-    }
-}
-
 typealias OpenUrlCallback = (URL) -> Void
 
 class DocumentsPage: Box {
@@ -151,7 +125,7 @@ class DocumentsPage: Box {
                      Value(documentMetadata.createdBy))
     }
     
-    private func documentSelected(_ path: TreePathProtocol) {
+    private func documentSelected(_ path: TreePathRef) {
         _ = store.get(iter: treeIter, path: path)
         let uuid = Value()
         store.getValue(iter: treeIter, column: 0, value: uuid)

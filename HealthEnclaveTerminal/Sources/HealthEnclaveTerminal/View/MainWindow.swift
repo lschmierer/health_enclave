@@ -41,15 +41,13 @@ class MainWindow: ApplicationWindow {
     
     var sharedKeyBuffer = String()
     
-    init(application: ApplicationProtocol, model: ApplicationModel) {
+    init(application: ApplicationRef, model: ApplicationModel) {
         self.model = model
         super.init(application: application)
         
         add(events: .keyPressMask)
         connectKey(signal: "key_press_event") { _, event in
-            let event = event._ptr.pointee
-            
-            if let scalar = UnicodeScalar(Gdk.keyvalToUnicode(keyval: event.keyval)),
+            if let scalar = UnicodeScalar(keyvalToUnicode(keyval: Int(event.keyval))),
                 scalar != "\0" {
                 self.onNewSharedKeyChar(char: Character(scalar))
             }

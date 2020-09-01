@@ -19,54 +19,73 @@ service HealthEnclave {
     //
     // The client should send a message at least every 2 seconds.
     // The server should respond immediateley.
-    rpc KeepAlive(stream google.protobuf.Empty) returns (stream google.protobuf.Empty);
+    // The client disconnect, if the server does not responf within 2 seconds.
+    rpc KeepAlive(stream google.protobuf.Empty)
+    returns (stream google.protobuf.Empty);
     
     // The client streams a list of documents locally present on the device.
-    rpc AdvertiseDocumentsToTerminal(stream DocumentMetadata) returns (google.protobuf.Empty);
+    rpc AdvertiseDocumentsToTerminal(stream DocumentMetadata)
+    returns (google.protobuf.Empty);
     
     // The server streams a list of documents that are not present on the device.
     //
     // The list may contain documents that are in fact present on the device, but
     // not advertised to the server, yet.
-    rpc MissingDocumentsForDevice(google.protobuf.Empty) returns (stream DocumentIdentifier);
+    rpc MissingDocumentsForDevice(google.protobuf.Empty)
+    returns (stream DocumentIdentifier);
     
     // The server streams a list of documents that are not present on the terminal.
     //
     // The client shall treat received identifiers as LIFO queue.
     // Documents requested last shall be transmitted first.
-    // This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
-    rpc MissingDocumentsForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
+    // This way, the terminal can prioritize to e.g. instantly show a document when
+    // selected by a user.
+    rpc MissingDocumentsForTerminal(google.protobuf.Empty)
+    returns (stream DocumentIdentifier);
     
     // The client streams a list of deleted documents.
     //
     // The server shall delete these documents as well.
-    rpc DeletedDocumentsForTerminal(stream DocumentIdentifier) returns (google.protobuf.Empty);
+    rpc DeletedDocumentsForTerminal(stream DocumentIdentifier)
+    returns (google.protobuf.Empty);
     
-    // Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
-    // Thes keys give immediate access to documents.
-    rpc MissingEncryptedDocumentKeysForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
-    
-    // Stream a list of documents the server wants to obtain the corresponding twofold encrypted keys for.
-    // Thes keys do not give access to documents and are meant for backup purpose.
-    rpc MissingTwofoldEncryptedDocumentKeysForTerminal(google.protobuf.Empty) returns (stream DocumentIdentifier);
-    
-    // Transfer the document for the fiven uuid to the client.
+    // The server streams a list of documents it wants the (onefold) encrypted key for.
     //
-    // The key is either onefold (new documents) or twofold (restore backup) encrypted.
-    rpc TransferDocumentToDevice(DocumentIdentifier) returns (stream OneOrTwofoldEncyptedDocumentChunked);
+    // These keys give immediate access to documents.
+    rpc MissingEncryptedDocumentKeysForTerminal(google.protobuf.Empty)
+    returns (stream DocumentIdentifier);
+    
+    // The server streams a list of documents it wants the twofold encrypted key for.
+    //
+    // These keys do not give access to documents and are meant for backup purpose.
+    rpc MissingTwofoldEncryptedDocumentKeysForTerminal(google.protobuf.Empty)
+    returns (stream DocumentIdentifier);
+    
+    // Transfer the document with the given identifier to the client.
+    //
+    // The key is either onefold (new documents) or twofold (restored backup) encrypted.
+    rpc TransferDocumentToDevice(DocumentIdentifier)
+    returns (stream OneOrTwofoldEncyptedDocumentChunked);
     
     // Transfer a document from device to terminal.
-    rpc TransferDocumentToTerminal(stream TwofoldEncyptedDocumentChunked) returns (google.protobuf.Empty);
+    rpc TransferDocumentToTerminal(stream TwofoldEncyptedDocumentChunked)
+    returns (google.protobuf.Empty);
     
     // Transfer a onefold encrypted key to the terminal.
-    rpc TransferEncryptedDocumentKeyToTerminal(EncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
+    //
+    // This keys gives immediate access to the corresponding document.
+    rpc TransferEncryptedDocumentKeyToTerminal(EncryptedDocumentKeyWithId)
+    returns (google.protobuf.Empty);
     
     // Transfer a onefold encrypted key not to the terminal.
-    // (And explicitly do not give access to document.)
-    rpc TransferEncryptedDocumentKeyNotToTerminal(DocumentIdentifier) returns (google.protobuf.Empty);
+    //
+    // This tells the terminal that the user denied the access request.
+    rpc TransferEncryptedDocumentKeyNotToTerminal(DocumentIdentifier)
+    returns (google.protobuf.Empty);
     
     // Transfer a twofold encrypted key to the terminal.
-    rpc TransferTwofoldEncryptedDocumentKeyToTerminal(TwofoldEncryptedDocumentKeyWithId) returns (google.protobuf.Empty);
+    rpc TransferTwofoldEncryptedDocumentKeyToTerminal(TwofoldEncryptedDocumentKeyWithId)
+    returns (google.protobuf.Empty);
 }
 
 message DocumentIdentifier {
@@ -99,26 +118,26 @@ message TwofoldEncryptedDocumentKeyWithId {
 }
 
 message OneOrTwofoldEncyptedDocumentKey {
-  oneof content {
-    EncryptedDocumentKey onefoldEncryptedKey = 1;
-    TwofoldEncryptedDocumentKey twofoldEncryptedKey = 2;
-  }
+    oneof content {
+        EncryptedDocumentKey onefoldEncryptedKey = 1;
+        TwofoldEncryptedDocumentKey twofoldEncryptedKey = 2;
+    }
 }
 
 message TwofoldEncyptedDocumentChunked {
-  oneof content {
-    DocumentMetadata metadata = 1;
-    TwofoldEncryptedDocumentKey key = 2;
-    bytes chunk = 3;
-  }
+    oneof content {
+        DocumentMetadata metadata = 1;
+        TwofoldEncryptedDocumentKey key = 2;
+        bytes chunk = 3;
+    }
 }
 
 message OneOrTwofoldEncyptedDocumentChunked {
-  oneof content {
-    DocumentMetadata metadata = 1;
-    OneOrTwofoldEncyptedDocumentKey key = 2;
-    bytes chunk = 3;
-  }
+    oneof content {
+        DocumentMetadata metadata = 1;
+        OneOrTwofoldEncyptedDocumentKey key = 2;
+        bytes chunk = 3;
+    }
 }
 
 message WifiConfiguration {

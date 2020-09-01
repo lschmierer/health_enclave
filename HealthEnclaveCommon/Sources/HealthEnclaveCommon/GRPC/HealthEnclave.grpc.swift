@@ -20,10 +20,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Foundation
 import GRPC
 import NIO
-import NIOHTTP1
 import SwiftProtobuf
 
 
@@ -99,6 +97,7 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
   ///
   /// The client should send a message at least every 2 seconds.
   /// The server should respond immediateley.
+  /// The client disconnect, if the server does not responf within 2 seconds.
   ///
   /// Callers should use the `send` method on the returned object to send messages
   /// to the server. The caller should send an `.end` after the final message has been sent.
@@ -162,7 +161,8 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
   ///
   /// The client shall treat received identifiers as LIFO queue.
   /// Documents requested last shall be transmitted first.
-  /// This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
+  /// This way, the terminal can prioritize to e.g. instantly show a document when
+  /// selected by a user.
   ///
   /// - Parameters:
   ///   - request: Request to send to MissingDocumentsForTerminal.
@@ -201,8 +201,9 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
     )
   }
 
-  /// Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
-  /// Thes keys give immediate access to documents.
+  /// The server streams a list of documents it wants the (onefold) encrypted key for.
+  ///
+  /// These keys give immediate access to documents.
   ///
   /// - Parameters:
   ///   - request: Request to send to MissingEncryptedDocumentKeysForTerminal.
@@ -222,8 +223,9 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
     )
   }
 
-  /// Stream a list of documents the server wants to obtain the corresponding twofold encrypted keys for.
-  /// Thes keys do not give access to documents and are meant for backup purpose.
+  /// The server streams a list of documents it wants the twofold encrypted key for.
+  ///
+  /// These keys do not give access to documents and are meant for backup purpose.
   ///
   /// - Parameters:
   ///   - request: Request to send to MissingTwofoldEncryptedDocumentKeysForTerminal.
@@ -243,9 +245,9 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
     )
   }
 
-  /// Transfer the document for the fiven uuid to the client.
+  /// Transfer the document with the given identifier to the client.
   ///
-  /// The key is either onefold (new documents) or twofold (restore backup) encrypted.
+  /// The key is either onefold (new documents) or twofold (restored backup) encrypted.
   ///
   /// - Parameters:
   ///   - request: Request to send to TransferDocumentToDevice.
@@ -284,6 +286,8 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
 
   /// Transfer a onefold encrypted key to the terminal.
   ///
+  /// This keys gives immediate access to the corresponding document.
+  ///
   /// - Parameters:
   ///   - request: Request to send to TransferEncryptedDocumentKeyToTerminal.
   ///   - callOptions: Call options.
@@ -300,7 +304,8 @@ extension HealthEnclave_HealthEnclaveClientProtocol {
   }
 
   /// Transfer a onefold encrypted key not to the terminal.
-  /// (And explicitly do not give access to document.)
+  ///
+  /// This tells the terminal that the user denied the access request.
   ///
   /// - Parameters:
   ///   - request: Request to send to TransferEncryptedDocumentKeyNotToTerminal.
@@ -356,6 +361,7 @@ public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   ///
   /// The client should send a message at least every 2 seconds.
   /// The server should respond immediateley.
+  /// The client disconnect, if the server does not responf within 2 seconds.
   func keepAlive(context: StreamingResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<SwiftProtobuf.Google_Protobuf_Empty>) -> Void>
   /// The client streams a list of documents locally present on the device.
   func advertiseDocumentsToTerminal(context: UnaryResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentMetadata>) -> Void>
@@ -368,39 +374,45 @@ public protocol HealthEnclave_HealthEnclaveProvider: CallHandlerProvider {
   ///
   /// The client shall treat received identifiers as LIFO queue.
   /// Documents requested last shall be transmitted first.
-  /// This way, the terminal can prioritize to e.g. instantly show a document when selected by a user.
+  /// This way, the terminal can prioritize to e.g. instantly show a document when
+  /// selected by a user.
   func missingDocumentsForTerminal(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus>
   /// The client streams a list of deleted documents.
   ///
   /// The server shall delete these documents as well.
   func deletedDocumentsForTerminal(context: UnaryResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_DocumentIdentifier>) -> Void>
-  /// Stream a list of documents the server wants to obtain the corresponding onefold encrypted keys for.
-  /// Thes keys give immediate access to documents.
-  func missingEncryptedDocumentKeysForTerminal(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus>
-  /// Stream a list of documents the server wants to obtain the corresponding twofold encrypted keys for.
-  /// Thes keys do not give access to documents and are meant for backup purpose.
-  func missingTwofoldEncryptedDocumentKeysForTerminal(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus>
-  /// Transfer the document for the fiven uuid to the client.
+  /// The server streams a list of documents it wants the (onefold) encrypted key for.
   ///
-  /// The key is either onefold (new documents) or twofold (restore backup) encrypted.
+  /// These keys give immediate access to documents.
+  func missingEncryptedDocumentKeysForTerminal(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus>
+  /// The server streams a list of documents it wants the twofold encrypted key for.
+  ///
+  /// These keys do not give access to documents and are meant for backup purpose.
+  func missingTwofoldEncryptedDocumentKeysForTerminal(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<HealthEnclave_DocumentIdentifier>) -> EventLoopFuture<GRPCStatus>
+  /// Transfer the document with the given identifier to the client.
+  ///
+  /// The key is either onefold (new documents) or twofold (restored backup) encrypted.
   func transferDocumentToDevice(request: HealthEnclave_DocumentIdentifier, context: StreamingResponseCallContext<HealthEnclave_OneOrTwofoldEncyptedDocumentChunked>) -> EventLoopFuture<GRPCStatus>
   /// Transfer a document from device to terminal.
   func transferDocumentToTerminal(context: UnaryResponseCallContext<SwiftProtobuf.Google_Protobuf_Empty>) -> EventLoopFuture<(StreamEvent<HealthEnclave_TwofoldEncyptedDocumentChunked>) -> Void>
   /// Transfer a onefold encrypted key to the terminal.
+  ///
+  /// This keys gives immediate access to the corresponding document.
   func transferEncryptedDocumentKeyToTerminal(request: HealthEnclave_EncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
   /// Transfer a onefold encrypted key not to the terminal.
-  /// (And explicitly do not give access to document.)
+  ///
+  /// This tells the terminal that the user denied the access request.
   func transferEncryptedDocumentKeyNotToTerminal(request: HealthEnclave_DocumentIdentifier, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
   /// Transfer a twofold encrypted key to the terminal.
   func transferTwofoldEncryptedDocumentKeyToTerminal(request: HealthEnclave_TwofoldEncryptedDocumentKeyWithId, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
 }
 
 extension HealthEnclave_HealthEnclaveProvider {
-  public var serviceName: String { return "health_enclave.HealthEnclave" }
+  public var serviceName: Substring { return "health_enclave.HealthEnclave" }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
+  public func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
     case "KeepAlive":
       return CallHandlerFactory.makeBidirectionalStreaming(callHandlerContext: callHandlerContext) { context in
