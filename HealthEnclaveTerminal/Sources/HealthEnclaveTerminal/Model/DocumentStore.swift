@@ -139,7 +139,6 @@ class DocumentStore {
         }
         
         let data = try readDocument(for: identifier)
-        debugPrint("Document Data Length: " + String(reflecting: data.count))
         
         documentStreamSubject.send(HealthEnclave_OneOrTwofoldEncyptedDocumentChunked.with {
             $0.metadata = metadata

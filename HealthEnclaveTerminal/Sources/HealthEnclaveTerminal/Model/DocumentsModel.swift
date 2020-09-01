@@ -104,8 +104,6 @@ class DocumentsModel {
             using: sharedKey,
             authenticating: documentMetadata)
         
-        debugPrint("Document Length: " + String(reflecting: encryptedDocument.count))
-        
         try documentStore.storeEncryptedDocument(encryptedDocument, with: documentMetadata, encryptedWith: encryptedDocumentKey)
         
         server.missingDocumentsForDeviceSubject.send(documentIdentifier)
