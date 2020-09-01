@@ -15,7 +15,7 @@ TLS certificate and private key are mandatory,
 | -key <key.pem>         | PEM file containing TLS private key. Required.                                           |
 | -practitioner <name>| Name of the practitioner. Used to tag documents.                |
 
-Use e.g.  `./HealthEnclaveTerminal -hotspot false -ssid SomeSSID -password SomePassword -cert cert.pem -key key.pem` to let clients connect to an existing Wifi network instead of creating a hotspot.
+Use e.g.  `./HealthEnclaveTerminal -hotspot false -ssid SomeSSID -password SomePassword -cert cert.pem -key key.pem -practitioner PractitionerName` to let clients connect to an existing Wifi network instead of creating a hotspot.
 
 ### Build
 Install prerequisites (see below).
@@ -38,16 +38,17 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/
 Make sure Swift is installed and the executable is in your path.
 You can download Swift from https://swift.org/download/.
 
+The Terminal application requires Swift version 5.2.
+
 `swift --version`, should give you something like
 ```
-$ swift --version
-Apple Swift version 5.1.3 (swiftlang-1100.0.282.1 clang-1100.0.33.15)
-Target: x86_64-apple-darwin19.3.0
+Apple Swift version 5.2.4 (swiftlang-1103.0.32.9 clang-1103.0.32.53)
+Target: x86_64-apple-darwin19.5.0
 ```
 on Mac and 
 ```
 $ swift --version
-Swift version 5.1.4 (swift-5.1.4-RELEASE)
+Swift version 5.2.4 (swift-5.2.4-RELEASE)
 Target: x86_64-unknown-linux-gnu
 ```
 on Linux.
@@ -63,3 +64,5 @@ brew install gtk+3 glib gobject-introspection pkg-config qrencode adwaita-icon-t
 ```
 sudo apt install libgtk-3-dev gir1.2-gtksource-3.0 gobject-introspection libgirepository1.0-dev libxml2-dev libqrencode-dev
 ```
+## Health Enclave App
+The App requires iOS 14 and Xcode 12.
