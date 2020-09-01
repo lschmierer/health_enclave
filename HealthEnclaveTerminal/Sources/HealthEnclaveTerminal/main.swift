@@ -31,7 +31,7 @@ if !FileManager.default.fileExists(atPath: cacheDirectory.path) {
 
 logger.info("Setting up UserDefaults...")
 UserDefaults.standard.register(defaults: [
-    "hotspot": true,
+    "hotspot": false,
     "ssid": "",
     "password": "",
     "port": 42242,

@@ -1,21 +1,21 @@
 # Health Enclave
+Prototype of a fully decentralized EHR approach.
+Documents are encrypted and stored on patient-controlled mobile devices.
+The patient moves the mobile device between institutions for data transport.
+
 ## Health Enclave Terminal
-By default, the Terminal application tries setting up a wifi hotspot for the client devices to connect to.
-You can pass command-line arguments to change the default behaviour.
-TLS certificate and private key are mandatory,
 
 | Argument               | Description                                                                              |
 |------------------------|------------------------------------------------------------------------------------------|
-| -hotspot <true/false>  | Enables/Disables Wifi Hotspot. Default: true                                             |
-| -ssid <SSID>           | SSID for Clients to connect to. Default: "Health Enclave Terminal" if Hotspot is enabled |
-| -password <pw>         | Password of Wifi Network for Clients. (only if Hotspot is enabled)                       |
+| -ssid <SSID>           | SSID for Clients to connect to. |
+| -password <pw>         | Password of Wifi Network for Clients.                      |
 | -interface <iface> | Network Interface to use. Default: "en0" on macOS, "wlan0" on Linux                          |
 | -port <#port>          | Port to listen on. Default: 42242                                                        |
 | -cert <cert.pem>       | PEM file containing TLS certificate chain. Required.                                     |
 | -key <key.pem>         | PEM file containing TLS private key. Required.                                           |
 | -practitioner <name>| Name of the practitioner. Used to tag documents.                |
 
-Use e.g.  `./HealthEnclaveTerminal -hotspot false -ssid SomeSSID -password SomePassword -cert cert.pem -key key.pem -practitioner PractitionerName` to let clients connect to an existing Wifi network instead of creating a hotspot.
+Example usage:  `./HealthEnclaveTerminal -ssid SomeSSID -password SomePassword -cert cert.pem -key key.pem -practitioner PractitionerName`
 
 ### Build
 Install prerequisites (see below).
