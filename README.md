@@ -4,6 +4,8 @@ Documents are encrypted and stored on patient-controlled mobile devices.
 The patient moves the mobile device between institutions for data transport.
 
 ## Health Enclave Terminal
+The application requires a QR code scanner, that identifies itself as HID keyboard.
+(Most scanners use US keyboard layout, configure your operating system accordingly.)
 
 | Argument               | Description                                                                              |
 |------------------------|------------------------------------------------------------------------------------------|
