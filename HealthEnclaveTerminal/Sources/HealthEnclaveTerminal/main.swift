@@ -49,9 +49,7 @@ UserDefaults.standard.register(defaults: ["nterface": "wlan0"])
 logger.info("Starting HelathEnclaveTerminal...")
 
 logger.debug("Creating ApplicationModel...")
-guard let appModel = try? ApplicationModel() else {
-    fatalError("Could not create ApplicationModel")
-}
+let appModel = ApplicationModel()
 
 logger.debug("Running Gtk Application...")
 let status = Application.run(id: "de.lschmierer.HealthEnclaveTerminal") { app in

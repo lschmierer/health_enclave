@@ -12,6 +12,7 @@ import NIOSSL
 import Combine
 #else
 import OpenCombine
+import OpenCombineDispatch
 #endif
 
 import HealthEnclaveCommon
