@@ -12,7 +12,6 @@ import NIOSSL
 import Combine
 #else
 import OpenCombine
-import OpenCombineDispatch
 #endif
 
 import HealthEnclaveCommon
@@ -33,17 +32,17 @@ enum ApplicationError: Error {
 class ApplicationModel {
     private let _setupCompletedSubject = PassthroughSubject<Result<String, ApplicationError>, Never>()
     var setupCompletedSubject: AnyPublisher<Result<String, ApplicationError>, Never> {
-        get { return _setupCompletedSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
+        get { return _setupCompletedSubject.eraseToAnyPublisher() }
     }
     
     private let _deviceConnectedSubject = PassthroughSubject<Void, Never>()
     var deviceConnectedSubject: AnyPublisher<Void, Never> {
-        get { return _deviceConnectedSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
+        get { return _deviceConnectedSubject.eraseToAnyPublisher() }
     }
     
     private let _sharedKeySetSubject = PassthroughSubject<DocumentsModel, Never>()
     var sharedKeySetSubject: AnyPublisher<DocumentsModel, Never> {
-        get { return _sharedKeySetSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
+        get { return _sharedKeySetSubject.eraseToAnyPublisher() }
     }
     
     private var documentsModel: DocumentsModel?

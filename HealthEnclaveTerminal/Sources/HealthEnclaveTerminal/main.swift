@@ -57,6 +57,10 @@ let status = Application.run(id: "de.lschmierer.HealthEnclaveTerminal") { app in
     MainWindow(application: app, model: appModel).show()
 }
 
+guard let status = status else {
+    fatalError("Could not create Gtk Application")
+}
+
 logger.debug("Exiting Gtk Application...")
 
 logger.debug("Clearing cache...")
@@ -65,9 +69,6 @@ if FileManager.default.fileExists(atPath: cacheDirectory.path) {
 }
 logger.debug("Cache cleared!")
 
-guard let status = status else {
-    fatalError("Could not create Gtk Application")
-}
 guard status == 0 else {
     fatalError("Application exited with status \(status)")
 }

@@ -36,7 +36,7 @@ class DocumentsModel {
     
     private let _documentAddedSubject = PassthroughSubject<HealthEnclave_DocumentMetadata, Never>()
     var documentAddedSubject: AnyPublisher<HealthEnclave_DocumentMetadata, Never> {
-        get { return _documentAddedSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher() }
+        get { return _documentAddedSubject.eraseToAnyPublisher() }
     }
     
     private var retrieveDocumentSubject: PassthroughSubject<URL, ApplicationError>?
@@ -143,7 +143,7 @@ class DocumentsModel {
             server.missingEncryptedDocumentKeysForTerminalSubject.send(documentIdentifier)
         }
         
-        return retrieveDocumentSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher()
+        return retrieveDocumentSubject.eraseToAnyPublisher()
     }
     
     private func resolveRetrieveDocument() {

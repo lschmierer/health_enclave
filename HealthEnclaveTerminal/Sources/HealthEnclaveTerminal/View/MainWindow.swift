@@ -8,6 +8,7 @@ import Foundation
 import Logging
 import Gdk
 import Gtk
+import CGLib
 
 #if os(macOS)
 import Combine
@@ -18,6 +19,38 @@ import OpenCombine
 private let logger = Logger(label: "de.lschmierer.HealthEnvlaveTerminal.MainWindow")
 
 let keyBytesSize = 32
+
+
+typealias ThreadCallback = () -> Bool
+
+class ThreadCallbackHolder {
+    public let call: ThreadCallback
+    
+    public init(_ closure: @escaping ThreadCallback) {
+        self.call = closure
+    }
+}
+
+func _threadsAddIdle(data: ThreadCallbackHolder, handler: @convention(c) @escaping (gpointer) -> gboolean) -> Int {
+    let opaqueHolder = Unmanaged.passRetained(data).toOpaque()
+    let callback = unsafeBitCast(handler, to: GSourceFunc.self)
+    let rv = threadsAddIdleFull(priority: Int(G_PRIORITY_DEFAULT_IDLE), function: callback, data: opaqueHolder, notify: {
+        if let swift = $0 {
+            let holder = Unmanaged<ThreadCallbackHolder>.fromOpaque(swift)
+            holder.release()
+        }
+    })
+    return rv
+}
+
+func threadsAddIdle(callback: @escaping ThreadCallback) -> Int {
+    let rv = _threadsAddIdle(data: ThreadCallbackHolder(callback)) {
+        let holder = Unmanaged<ThreadCallbackHolder>.fromOpaque($0).takeUnretainedValue()
+        let rv: gboolean = holder.call() ? 1 : 0
+        return rv
+    }
+    return rv
+}
 
 class MainWindow: ApplicationWindow {
     private let model: ApplicationModel
@@ -63,27 +96,41 @@ class MainWindow: ApplicationWindow {
         
         serverSetupCompleteSubscription = model.setupCompletedSubject
             .sink { [weak self] (result) in
-                switch result {
-                case let .success(wifiConfiguration):
-                    logger.debug("Showing ConnectPage...")
-                    self?.page = ConnectPage(wifiConfiguration: wifiConfiguration)
-                case let .failure(error):
-                    logger.error("Can not create server: \(error)")
-                    application.quit()
+                guard let self = self else { return }
+                
+                _ = threadsAddIdle {
+                    switch result {
+                    case let .success(wifiConfiguration):
+                        logger.debug("Showing ConnectPage...")
+                        self.page = ConnectPage(wifiConfiguration: wifiConfiguration)
+                    case let .failure(error):
+                        logger.error("Can not create server: \(error)")
+                        application.quit()
+                    }
+                    return false
                 }
         }
         
         serverDeviceConnectedSubscription = model.deviceConnectedSubject
             .sink { [weak self] in
-                logger.debug("Showing SharedKeyPage...")
-                self?.page = SharedKeyPage()
+                guard let self = self else { return }
+                
+                _ = threadsAddIdle {
+                    logger.debug("Showing SharedKeyPage...")
+                    self.page = SharedKeyPage()
+                    return false
+                }
         }
         
         serverSharedKeySetSubscription = model.sharedKeySetSubject
             .sink { [weak self] documentsModel in
                 guard let self = self else { return }
-                logger.debug("Showing DocumentsPage...")
-                self.page = DocumentsPage(model: documentsModel, openUrl: self.openUrl)
+                
+                _ = threadsAddIdle {
+                    logger.debug("Showing DocumentsPage...")
+                    self.page = DocumentsPage(model: documentsModel, openUrl: self.openUrl)
+                    return false
+                }
         }
         
         model.setupServer()

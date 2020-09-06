@@ -67,7 +67,12 @@ class DocumentsPage: Box {
         
         documentAddedSubscription = model.documentAddedSubject
             .sink { [weak self] documentMetadata in
-                self?.addDocumentToList(documentMetadata)
+                guard let self = self else { return }
+                
+                _ = threadsAddIdle {
+                    self.addDocumentToList(documentMetadata)
+                    return false
+                }
         }
         
         _ = treeView.onRowActivated { _, path, _ in
@@ -138,16 +143,26 @@ class DocumentsPage: Box {
         spinner.start()
         openDocumentSubscription = try! model.retrieveDocument(documentIdentifier)
             .sink(receiveCompletion: { [weak self] completion in
-                self?.spinner.stop()
-                if case let .failure(error) = completion,
-                    case .noDocumentPermission = error {
-                    let dialog = MessageDialog(flags: [], type: .error, buttons: .ok, markup: "No Permission", secondaryMarkup: "Patient did not give permission to access this document.")
-                    dialog.set(position: .center)
-                    _ = dialog.run()
-                    dialog.destroy()
+                guard let self = self else { return }
+                
+                _ = threadsAddIdle {
+                    self.spinner.stop()
+                    if case let .failure(error) = completion,
+                        case .noDocumentPermission = error {
+                        let dialog = MessageDialog(flags: [], type: .error, buttons: .ok, markup: "No Permission", secondaryMarkup: "Patient did not give permission to access this document.")
+                        dialog.set(position: .center)
+                        _ = dialog.run()
+                        dialog.destroy()
+                    }
+                    return false
                 }
-            }, receiveValue: { [weak self] documentUrl in
-                self?.openUrlCallback(documentUrl)
+                }, receiveValue: { [weak self] documentUrl in
+                    guard let self = self else { return }
+                    
+                    _ = threadsAddIdle {
+                        self.openUrlCallback(documentUrl)
+                        return false
+                    }
             })
     }
 }
