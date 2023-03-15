@@ -1,4 +1,9 @@
 # Health Enclave
+
+> This project was part of my master's thesis.
+> You can find the full-text thesis which contains some kind of documentation 
+[here](https://nbn-resolving.org/urn:nbn:de:bsz:15-qucosa2-840075) (look for "Volltext" at the bottom).
+
 Prototype of a fully decentralized EHR approach.
 Documents are encrypted and stored on patient-controlled mobile devices.
 The patient moves the mobile device between institutions for data transport.
